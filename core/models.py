@@ -1,20 +1,24 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-# Create your models here.
+from django.contrib.auth.models import AbstractUser,AbstractBaseUser
+
 
 class User(AbstractUser):
     phone=models.CharField(max_length=10,null=True)
-    email=models.EmailField(blank=False)
+    email=models.EmailField(unique=True,blank=False)
     jntuno=models.CharField(max_length=10,null=False,blank=False)
     date_joined=models.DateField(auto_now=True)
-    image=models.ImageField(null=True,blank=True)
+    image=models.ImageField(null=True,blank=True,default='default.jpg')
     branch=models.CharField(max_length=10)
     college=models.CharField(max_length=100,default='GMRIT')
+
     def save(self,*args,**kwargs):
         first_name=first_name.capitalize()
         last_name=last_name.capitalize()
         jntu=jntu.upper()
         super().save(*args,**kwargs)
+    def make_staff(self,*args,**kwargs):
+        self.is_staff=True
+        self.save(*args,**kwargs)
 
 
 class Contests(models.Model):
