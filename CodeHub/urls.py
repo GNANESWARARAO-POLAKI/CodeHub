@@ -16,9 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from django.conf.urls import handler404,handler400,handler500
 
+handler404='core.views.custom_404'
+handler400='core.views.custom_400'
+handler500='core.views.custom_500'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',include('core.urls'))
+    path('',include('core.urls')),
+    path('codelife/',include('codelife.urls'))
 ]

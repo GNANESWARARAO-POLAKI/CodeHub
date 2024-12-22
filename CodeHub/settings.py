@@ -23,7 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-)$!^7yr&8v3mrjg6iiy*c5!*xr#bh$vx)0@1qv!+cj!%jeprl^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = False
+DEBUG=True
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -129,6 +131,12 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
+# media urls and directory 
+
+MEDIA_URL = '/media/'  # URL to access media files
+MEDIA_ROOT = BASE_DIR / 'media/'  # Directory to store media files
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
@@ -141,3 +149,8 @@ AUTH_USER_MODEL='core.User'
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+LOGIN_URL = '/login/'
+
+
+
+# HANDLER404 = 'core.views.custom_404'

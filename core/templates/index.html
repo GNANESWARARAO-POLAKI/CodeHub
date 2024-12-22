@@ -9,5 +9,8 @@
 </head>
 <body>
     <h1>Welcome to My Django Home Page!</h1>
+    {% if request.user %} <a href="{% url 'core:logout' %}">Logout</a>
+    {{ request.user }} <a href="{% url 'core:login'%}">Login</a>
+    {% endif  %}
 </body>
 </html>

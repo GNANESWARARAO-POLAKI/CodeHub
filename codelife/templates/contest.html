@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Contest</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        textarea {
+            width: 80%;
+            height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Code Contest</h1>
+    <p>Write your code below and click Submit to test it:</p>
+    <textarea id="codeInput" placeholder="Enter your code here..."></textarea><br>
+    <button onclick="runTestCases()">Submit</button>
+    <div id="result"></div>
+
+    <script>
+        function runTestCases() {
+            const code = document.getElementById("codeInput").value;
+            const resultDiv = document.getElementById("result");
+
+            // Mock test cases for demonstration
+            const testCases = [
+                { input: 1, expected: 2 },
+                { input: 2, expected: 4 },
+                { input: 3, expected: 6 }
+            ];
+
+            // Mock code execution (Replace this with actual code execution logic on a server)
+            try {
+                // Example: Evaluating the code as a function to double the input
+                const func = new Function('input', code);
+
+                let results = '';
+                for (let testCase of testCases) {
+                    const output = func(testCase.input);
+                    if (output === testCase.expected) {
+                        results += `Test case input ${testCase.input}: Passed<br>`;
+                    } else {
+                        results += `Test case input ${testCase.input}: Failed (Expected ${testCase.expected}, got ${output})<br>`;
+                    }
+                }
+                resultDiv.innerHTML = results;
+            } catch (error) {
+                resultDiv.innerHTML = `<span style="color: red;">Error in code: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

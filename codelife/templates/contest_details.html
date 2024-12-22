@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>codelife contest Details</title>
+</head>
+<body>
+    <div class="contest-details">
+    title :{{contest.title}}<br>Registration count :{{ registration_count }}<br>{{contest.status}}<hr>
+    descreption :{{ contest.description }}<br><hr>
+    form:{{contest.start_date}} to {{contest.end_date}} <br>
+    <img src="{{ contest.poster.url }}" alt="Contest Poster" style="max-width: 100%; height: auto;"><br>
+
+    </div>
+    {% if request.user.is_authenticated %}
+
+    {% if request.user.is_staff %} <div class="edit"> <a href="{% url 'core:edit_contest' contest.id %}">Edit contest</a> | <a href="{% url 'codelife:add_question' contest.id %}">Add Question</a>
+    </div>
+    <div class="questions">
+        <div class="question">
+        {% for question in questions %}
+        <li>{{question.title}}--- <a href="{% url 'codelife:edit_question' question.id %}">Edit question</a>
+        </li>
+        
+        {% empty %}
+        {% endfor %}</div>
+    </div>
+    {% else %}
+    {% if is_participant %} <p>You are registered to this contest</p> {% else %}
+    <div class="register">
+        <form action="{% url 'codelife:register' contest.id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" value="Register">
+        </form>
+        </div>{% endif %}
+    {% endif %}
+    {% else %}
+    <p> please login to register</p>
+    {% endif %}
+</body>
+</html>

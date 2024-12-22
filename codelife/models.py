@@ -11,7 +11,7 @@ class Questions(models.Model):
     timelimit=models.PositiveIntegerField()
     score=models.PositiveIntegerField()
     def save(self,*args,**kwargs):
-        title=title.capitalize()
+        self.title=self.title.capitalize()
         super().save(*args,**kwargs)
     def __str__(self):
         return f"Question :{self.title} in {self.contest.title}"
@@ -59,7 +59,7 @@ class Participant(models.Model):
 # output = ["Accepted (AC)", "Wrong Answer (WA)", "Runtime Error (RE)",
 # "Time Limit Exceeded (TLE)","Memory Limit Exceeded (MLE)","Compilation Error (CE)","Presentation Error (PE)",
 # "Partial Correct (PC)","Output Limit Exceeded (OLE)","Internal Error (IE)"]
-
+ 
 class Submission(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='submissions')
     question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='submissions')
