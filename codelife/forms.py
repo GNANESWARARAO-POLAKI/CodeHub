@@ -7,3 +7,14 @@ class AddQuestionsForm(forms.ModelForm):
         model=Questions
         fields=['title','descreption','score','timelimit']
     
+class TestcaseForm(forms.ModelForm):
+    class Meta:
+        model=Testcases
+        fields=['input_data','expected_output','hidden']
+
+
+# forms.py
+from django.forms import modelformset_factory
+
+# Create the formset for the Testcase model
+TestcaseFormSet = modelformset_factory(Testcases, form=TestcaseForm, extra=0)  # "extra=1" will show one empty form initially

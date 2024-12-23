@@ -1,15 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add question</title>
-</head>
-<body>
-    <form method="post">
-        {% csrf_token %}
-        {{form.as_p}}
-        <input type="submit" value="submit">
-    </form>
-</body>
-</html>
+<form method="POST">
+    {% csrf_token %}
+    <div id="question">
+        <!-- Title: Display Add or Edit -->
+        <h2>{% if is_edit %}Edit Question{% else %}Add Question{% endif %}</h2>
+        
+        <!-- Render the question form -->
+        {{ form.as_p }}
+        
+        <!-- Show error messages if any -->
+        {% if form.errors %}
+            <ul class="errorlist">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <!-- Next button to show testcases -->
+        <button type="button" id="next" onclick="change(event)">Next</button>
+    </div>
+
+    <!-- Testcase Form Section (Initially hidden) -->
+    <div id="testcase" style="display:none;">
+        <h3>{% if is_edit %}Edit Testcases{% else %}Add Testcases{% endif %}</h3>
+        <div id="testcase-forms">
+            <!-- Render the formset for testcases -->
+            {{ formset.management_form }}  <!-- Management form for formset -->
+
+            {% for form in formset %}
+                <div class="testcase-form">
+                    {{ form.as_p }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Button to add another testcase form (only visible in add mode) -->
+        {% if not is_edit %}
+            <button type="button" id="add-testcase" onclick="addTestcase()">Add Another Testcase</button>
+        {% endif %}
+
+        <!-- Submit button -->
+        <button type="submit">Submit</button>
+    </div>
+</form>
+
+<script>
+    // Function to toggle visibility of question and testcase sections
+    function change(event) {
+        event.preventDefault();  // Prevent form submission on clicking the Next button
+        document.getElementById('testcase').style.display = 'block';
+        document.getElementById('question').style.display = 'none';
+    }
+
+    // Function to dynamically add new testcase form (only in add mode)
+    function addTestcase() {
+        // Ensure that we are in the 'Add Question' mode (not edit mode)
+        {% if not is_edit %}
+            var formCount = document.getElementById('id_form-TOTAL_FORMS').value;  // Get the total form count
+            var newForm = document.querySelector('.testcase-form').cloneNode(true);  // Clone the first form
+
+            // Reset the form values for the new test case
+            var inputs = newForm.querySelectorAll('input, textarea');
+            inputs.forEach(function(input) {
+                input.value = '';  // Clear input values
+            });
+
+            // Append the new form to the container
+            document.getElementById('testcase-forms').appendChild(newForm);
+
+            // Update the TOTAL_FORMS count in the formset management form
+            document.getElementById('id_form-TOTAL_FORMS').value = parseInt(formCount) + 1;
+        {% endif %}
+    }
+</script>

@@ -37,37 +37,105 @@ def contest_details(request,contest_id):
 
 @login_required
 def codelife_contest(request,contest_id):
-    return render(request,'contest.html')
+    return render(request,'ai/index.html')
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .forms import AddQuestionsForm, TestcaseFormSet
+from .models import Contests, Questions, Testcases
 
 @login_required
-def add_question(request,contest_id):
-    if request.method=='POST':                                
-        form=AddQuestionsForm(request.POST)
-        if form.is_valid():
-            if Contests.objects.filter(id=contest_id).exists():
-                contest=get_object_or_404(Contests,id=contest_id)
-                question = form.save(commit=False)  # Do not save to the database yet
-                question.contest = contest  # Associate the contest with the question
-                question.save()
-                return render(request,'contest_details.html',{'contest':contest})
+def add_question(request, contest_id):
+    contest = get_object_or_404(Contests, id=contest_id)
 
-            else:
-                return 
-    form=AddQuestionsForm()
-    return render(request,'add_question.html',{'form':form})
+    if request.method == 'POST':
+        form = AddQuestionsForm(request.POST)
+        formset = TestcaseFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            # Create a new question
+            question = form.save(commit=False)
+            question.contest = contest
+            question.save()
+
+            # Save testcases
+            for form in formset:
+                testcase = form.save(commit=False)
+                testcase.question = question
+                testcase.save()
+
+            return redirect('contest_details', contest_id=contest.id)
+        else:
+            # If form is invalid, return with errors
+            return render(request, 'add_question.html', {
+                'form': form,
+                'formset': formset,
+                'contest': contest,
+                'is_edit': False
+            })
+    else:
+        form = AddQuestionsForm()
+        formset = TestcaseFormSet(queryset=Testcases.objects.none())  # No testcases initially
+
+    return render(request, 'add_question.html', {
+        'form': form,
+        'formset': formset,
+        'contest': contest,
+        'is_edit': False  # Flag to indicate this is for adding
+    })
+
+
+
+# @login_required
+# def edit_question(request,question_id):
+#     question=get_object_or_404(Questions,id=question_id)
+#     if request.method == 'POST':
+#         form = AddQuestionsForm(request.POST, instance=question)
+#         if form.is_valid():
+#             form.save()  
+#             return redirect('codelife:contest_details', contest_id=question.contest.id)
+#     else:
+#         form = AddQuestionsForm(instance=question)
+#     return render(request, 'edit_question.html', {'form': form})
 
 
 @login_required
-def edit_question(request,question_id):
-    question=get_object_or_404(Questions,id=question_id)
+def edit_question(request, question_id):
+    question = get_object_or_404(Questions, id=question_id)
+    contest = question.contest
+
     if request.method == 'POST':
         form = AddQuestionsForm(request.POST, instance=question)
-        if form.is_valid():
-            form.save()  
-            return redirect('codelife:contest_details', contest_id=question.contest.id)
+        formset = TestcaseFormSet(request.POST)
+
+        if form.is_valid() and formset.is_valid():
+            # Update existing question
+            question = form.save()
+
+            # Save or update testcases
+            for form in formset:
+                testcase = form.save(commit=False)
+                testcase.question = question
+                testcase.save()
+
+            return redirect('codelife:contest_details', contest_id=contest.id)
+        else:
+            # If form or formset is invalid, return with errors
+            return render(request, 'add_question.html', {
+                'form': form,
+                'formset': formset,
+                'contest': contest,
+                'is_edit': True  # Flag to indicate this is for editing
+            })
     else:
         form = AddQuestionsForm(instance=question)
-    return render(request, 'edit_contest.html', {'form': form})
+        formset = TestcaseFormSet(queryset=question.testcases.all())  # Pre-fill with existing testcases
+
+    return render(request, 'add_question.html', {
+        'form': form,
+        'formset': formset,
+        'contest': contest,
+        'is_edit': True  # Flag to indicate this is for editing
+    })
 
 
 @csrf_exempt
