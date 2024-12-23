@@ -1,10 +1,12 @@
 from django.shortcuts import render,redirect,Http404,get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import *
 from .forms import *
 from django.contrib import messages
+
 
 @csrf_exempt
 @login_required
@@ -29,7 +31,7 @@ def contest_details(request,contest_id):
         is_participant=Participant.objects.filter(user=request.user,contest=contest).exists()
     if request.user.is_staff:
         questions=Questions.objects.filter(contest=contest)
-        return render(request,'contest_details.html',{'questions':questions,'contest':contest,'registration_count':registration_count})
+        return render(request,'contest_details.html',{'questions':questions,'contest':contest,'registration_count':registration_count,'is_participant':is_participant})
     return render(request,'contest_details.html',{'contest':contest,'is_participant':is_participant,'registration_count':registration_count})
 
 
@@ -66,3 +68,30 @@ def edit_question(request,question_id):
     else:
         form = AddQuestionsForm(instance=question)
     return render(request, 'edit_contest.html', {'form': form})
+
+
+@csrf_exempt
+def question_page(request,contest_id):
+    user=get_object_or_404(User,id=request.user.id)
+    contest = get_object_or_404(Contests, id=contest_id)
+    questions = Questions.objects.filter(contest=contest)
+    paginator = Paginator(questions, 1)
+    question_number = request.GET.get('page', 1)
+    question = paginator.get_page(question_number)
+    for idx, q in enumerate(question.object_list, start=(question.number - 1) * paginator.per_page + 1):
+        q.display_number = f"{idx} - {'solved' if is_solved(q,user) else 'unsolved'}"
+    question_data = {}
+    question_data['questions'] = [
+        {
+            'id': q.id,
+            'text': q.title,
+            'is_solved': is_solved(q,user),
+            'display_number': q.display_number
+        } for q in question.object_list
+    ]
+    return JsonResponse(question_data)
+
+
+def is_solved(question,user):
+    return True
+    

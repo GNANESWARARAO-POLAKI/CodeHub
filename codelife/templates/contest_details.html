@@ -14,29 +14,51 @@
 
     </div>
     {% if request.user.is_authenticated %}
+    {% if contest.status == 'Past' %}
+        <div class="past-contest">
+            <p>Winner: {{ contest.winner }}</p>
+            <p>Runner-Up: {{ contest.runner }}</p>
+        </div>
+    {% elif contest.status == 'Ongoing' %}
+        {% if is_participant %}
+            <a href="{% url 'codelife:contest' contest.id %}">Start</a>
+        {% else %}
+            <div class="register">
+                <form action="{% url 'codelife:register' contest.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="submit" value="Register">
+                </form>
+            </div>
+        {% endif %}
+    {% elif contest.status == 'Feature' %}
+        <div class="register">
+            <form action="{% url 'codelife:register' contest.id %}" method="post">
+                {% csrf_token %}
+                <input type="submit" value="Register">
+            </form>
+        </div>
+    {% endif %}
 
-    {% if request.user.is_staff %} <div class="edit"> <a href="{% url 'core:edit_contest' contest.id %}">Edit contest</a> | <a href="{% url 'codelife:add_question' contest.id %}">Add Question</a>
-    </div>
-    <div class="questions">
-        <div class="question">
-        {% for question in questions %}
-        <li>{{question.title}}--- <a href="{% url 'codelife:edit_question' question.id %}">Edit question</a>
-        </li>
-        
-        {% empty %}
-        {% endfor %}</div>
-    </div>
-    {% else %}
-    {% if is_participant %} <p>You are registered to this contest</p> {% else %}
-    <div class="register">
-        <form action="{% url 'codelife:register' contest.id %}" method="post">
-            {% csrf_token %}
-            <input type="submit" value="Register">
-        </form>
-        </div>{% endif %}
+    {% if request.user.is_staff %}
+        <div class="edit">
+            <a href="{% url 'core:edit_contest' contest.id %}">Edit contest</a> |
+            <a href="{% url 'codelife:add_question' contest.id %}">Add Question</a>
+        </div>
+        <div class="questions">
+            <ul>
+                {% for question in questions %}
+                    <li>{{ question.title }} ---
+                        <a href="{% url 'codelife:edit_question' question.id %}">Edit question</a>
+                    </li>
+                {% empty %}
+                    <li>No questions available.</li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endif %}
-    {% else %}
-    <p> please login to register</p>
-    {% endif %}
+{% else %}
+    <p>Please log in to participate.</p>
+{% endif %}
+
 </body>
 </html>

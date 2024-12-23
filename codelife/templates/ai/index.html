@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Problem Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">Logo</div>
+        <div class="timer">00:00:00</div>
+        <div class="lives">
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="content">
+            <div class="left-panel">
+                <nav>
+                    <button class="tab active">Description</button>
+                    <button class="tab">Submissions</button>
+                    <button class="tab">Leaderboard</button>
+                </nav>
+                
+                <div class="problem-content">
+                    <h1>Stable array</h1>
+                    <h2>Problem Statement</h2>
+                    <p>You're given an array AA of length NN.<br>
+                    Every second, the following process will happen:</p>
+                    <ul>
+                        <li>For each ii from 11 to N−1N−1 in order, if Ai<Ai+1Ai<Ai+1</li>
+                    </ul>
+
+                    <div class="example">
+                        For example, if A=[3,1,4,1,5]A=[3,1,4,1,5], the process is as follows:
+                        <ul>
+                            <li>A1 is not less than A2, so it won't change.</li>
+                            <li>A2 is less than A3, so A2 will be set to A3=4</li>
+                            <li>A3 is not less than A4, so it won't change.</li>
+                            <li>A4 is less than A5, so it will be set to A5=5</li>
+                        </ul>
+                    </div>
+
+                    <h2>Input</h2>
+                    <p>The first line of input will contain a single integer TT, denoting the number of test cases.</p>
+
+                    <h2>Output Format</h2>
+                    <p>For each test case, output on a new line the number of seconds after which AA becomes stable.</p>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="editors-container">
+                    <div class="code-editor program-editor">
+                        <div class="editor-header">
+                            <div class="controls">
+                                <select id="language">
+                                    <option value="python">Python</option>
+                                    <option value="javascript">JavaScript</option>
+                                    <option value="java">Java</option>
+                                </select>
+                                <div class="score">Score:100</div>
+                                <div class="icons">
+                                    <button class="icon">🔄</button>
+                                    <button class="icon">⚙️</button>
+                                    <button class="icon">↗️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <textarea id="programInput" placeholder="Write your program here..."></textarea>
+                    </div>
+                    <div class="code-editor test-editor">
+                        <div class="editor-header">Test Input</div>
+                        <textarea id="testInput" placeholder="Enter test cases here..."></textarea>
+                    </div>
+                </div>
+                <button class="submit-btn">Submit</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="pagination">
+            <button class="prev">◀</button>
+            <button class="page active">1</button>
+            <button class="page">2</button>
+            <button class="page">3</button>
+            <button class="page">4</button>
+            <button class="page">5</button>
+            <button class="next">▶</button>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

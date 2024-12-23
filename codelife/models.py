@@ -1,5 +1,7 @@
 from django.db import models
 from core.models import * 
+from django.contrib.auth import get_user
+
 
 # Create your models here.
 
@@ -10,11 +12,19 @@ class Questions(models.Model):
     descreption=models.TextField(blank=False)
     timelimit=models.PositiveIntegerField()
     score=models.PositiveIntegerField()
+
     def save(self,*args,**kwargs):
         self.title=self.title.capitalize()
         super().save(*args,**kwargs)
+
+    # def is_solved(user):
+    #     # if user.is_anonymous:
+    #     #     return False
+    #     return Submission.objects.filter(output=1, participant__user=user).exists()
+  
     def __str__(self):
         return f"Question :{self.title} in {self.contest.title}"
+
 
 class Testcases(models.Model):
     question=models.ForeignKey(Questions,on_delete=models.CASCADE,related_name='testcases')
