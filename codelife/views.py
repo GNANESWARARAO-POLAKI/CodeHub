@@ -37,11 +37,8 @@ def contest_details(request,contest_id):
 
 @login_required
 def codelife_contest(request,contest_id):
-    return render(request,'ai/index.html')
-
-from django.shortcuts import render, get_object_or_404, redirect
-from .forms import AddQuestionsForm, TestcaseFormSet
-from .models import Contests, Questions, Testcases
+    contest=get_object_or_404(Contests,id=contest_id)
+    return render(request,'ai/index.html',{'contest':contest})
 
 @login_required
 def add_question(request, contest_id):
@@ -139,27 +136,59 @@ def edit_question(request, question_id):
 
 
 @csrf_exempt
-def question_page(request,contest_id):
-    user=get_object_or_404(User,id=request.user.id)
+def question_page(request, contest_id):
+    user = get_object_or_404(User, id=request.user.id)
     contest = get_object_or_404(Contests, id=contest_id)
     questions = Questions.objects.filter(contest=contest)
-    paginator = Paginator(questions, 1)
-    question_number = request.GET.get('page', 1)
-    question = paginator.get_page(question_number)
-    for idx, q in enumerate(question.object_list, start=(question.number - 1) * paginator.per_page + 1):
-        q.display_number = f"{idx} - {'solved' if is_solved(q,user) else 'unsolved'}"
-    question_data = {}
-    question_data['questions'] = [
-        {
-            'id': q.id,
-            'text': q.title,
-            'is_solved': is_solved(q,user),
-            'display_number': q.display_number
-        } for q in question.object_list
+    first_question = questions.first().id
+    question_id = request.GET.get('question_id',first_question)
+    if not question_id:
+        return JsonResponse({'error': 'question_id is required'}, status=400)
+    current_question = get_object_or_404(Questions, id=question_id, contest=contest)
+    status = is_solved(current_question, user)
+    lost_submissions = Submission.objects.filter(
+        participant__user=user,
+        question=current_question,
+        output=0
+    ).count()
+    solved_status = [
+        {'question_id': q.id, 'solved': is_solved(q, user)}
+        for q in questions
     ]
-    return JsonResponse(question_data)
+    response = {
+        'current_question': current_question.serialize() | {
+            'lost_submissions': lost_submissions,
+            'status': status,
+        },
+        'contest': {
+            'id': contest.id,
+            'title': contest.title,
+        },
+        'total_questions': questions.count(),
+        'solved_status': solved_status,
+    }
+
+    return JsonResponse(response)
+
+
+def submit_code(request, contest_id, question_id):
+    user = get_object_or_404(User, id=request.user.id)
+    contest = get_object_or_404(Contests, id=contest_id)
+    question = get_object_or_404(Questions, id=question_id, contest=contest)
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        language=request.POST.get('language')
+        submission = Submission.objects.create(
+            language=language,
+            code=code,
+            question=question,
+            participant=Participant.objects.get(user=user, contest=contest)
+        )
+        submission.execute()
+        return JsonResponse({'output': submission.output})
 
 
 def is_solved(question,user):
-    return True
+    return Submission.objects.filter(output=1, participant__user=user, question=question).exists()
     
+

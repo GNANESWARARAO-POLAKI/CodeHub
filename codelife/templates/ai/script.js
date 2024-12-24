@@ -46,6 +46,33 @@ function initializeSubmitButton() {
     });
 }
 
+function loadQuestion(questionNumber){
+    const question = document.querySelector('.problem-content');
+    question.innerHTML='';
+    if (questionNumber == -1){
+        apiview={{contest.id}}+'/question/';
+    }
+    else{
+        apiview={{contest.id}}+'/question/'+questionNumber;
+    }
+    fetch(apiview).then(response => response.json()).then(data => {
+        question.innerHTML = '<h1>'+data.current_question.title+'</h1><p>'+data.current_question.description+'</p>';
+
+        console.log(data);
+        pagination=document.getElementById('pagination');
+        pagination.innerHTML='';
+        data.solved_status.forEach((question_status, index) => {
+            const questionNumber = index + 1; // Get the current question number
+            const questionName = question_status.id; // Access the question name or property
+            console.log(`${questionNumber} ${questionName}`);
+        });
+        
+
+
+    });
+   
+}
+
 // Initialize everything when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     updateTimer();

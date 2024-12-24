@@ -9,14 +9,21 @@ from django.contrib.auth import get_user
 class Questions(models.Model):
     contest=models.ForeignKey(Contests,on_delete=models.CASCADE,related_name='questions')
     title=models.CharField(max_length=100)
-    descreption=models.TextField(blank=False)
+    description=models.TextField(blank=False)
     timelimit=models.PositiveIntegerField()
     score=models.PositiveIntegerField()
-
+    lives=models.PositiveIntegerField(default=5)
     def save(self,*args,**kwargs):
         self.title=self.title.capitalize()
         super().save(*args,**kwargs)
 
+    def serialize(self):
+        return {
+            'title':self.title,
+            'description':self.description,
+            'score':self.score,
+            'lives':self.lives,
+        }
     # def is_solved(user):
     #     # if user.is_anonymous:
     #     #     return False
@@ -73,7 +80,7 @@ class Participant(models.Model):
 class Submission(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='submissions')
     question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='submissions')
-    lang=models.PositiveIntegerField()
+    language=models.PositiveIntegerField()
     code=models.TextField()
     output=models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -82,3 +89,5 @@ class Submission(models.Model):
     memory=models.PositiveIntegerField(null=True)
     def __str__(self):
         return f"Submission by {self.participant.user.username} for {self.question.title}"
+
+
