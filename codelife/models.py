@@ -19,6 +19,7 @@ class Questions(models.Model):
 
     def serialize(self):
         return {
+            'id':self.id,
             'title':self.title,
             'description':self.description,
             'score':self.score,
@@ -40,6 +41,12 @@ class Testcases(models.Model):
     hidden=models.BooleanField(default=True)
     def __str__(self):
         return f"TestCase for {self.question.title} (Hidden: {self.hidden})"
+    def serialize(self):
+        return {
+            'input':self.input_data,
+            'output':self.expected_output,
+        }
+
 
 class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='participations')

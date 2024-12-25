@@ -151,6 +151,7 @@ def question_page(request, contest_id):
         question=current_question,
         output=0
     ).count()
+    sample_testcase=Testcases.objects.filter(question=current_question).first()
     solved_status = [
         {'question_id': q.id, 'solved': is_solved(q, user)}
         for q in questions
@@ -159,6 +160,7 @@ def question_page(request, contest_id):
         'current_question': current_question.serialize() | {
             'lost_submissions': lost_submissions,
             'status': status,
+            'sample_testcase':sample_testcase.serialize(),
         },
         'contest': {
             'id': contest.id,
@@ -167,7 +169,6 @@ def question_page(request, contest_id):
         'total_questions': questions.count(),
         'solved_status': solved_status,
     }
-
     return JsonResponse(response)
 
 

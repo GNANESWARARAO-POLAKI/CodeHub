@@ -72,21 +72,29 @@ function loadQuestion(questionNumber) {
                 <h1>${data.current_question.title}'</h1>
                 <p>${data.current_question['description']}</p>
             `;
-
-            // Handle pagination and solved statuses
+            const lives=document.getElementById('lives');
+            lives.innerHTML='';
+            for (let i=0;i<data.current_question.lives-data.current_question.lost_submissions;i++){
+                lives.innerHTML+=`<span class="heart">❤️</span>`;
+            }
+            for(let i=0;i<data.current_question.lost_submissions;i++){
+                lives.innerHTML+=`<span class="heart">🩶</button>`;
+            }
             const pagination = document.getElementById('pagination');
-            pagination.innerHTML = ''; // Clear existing pagination
-
+            pagination.innerHTML = ''; 
             data.solved_status.forEach((questionStatus, index) => {
-                const page = document.createElement('div');
-                page.classList.add('page');
-                if (questionStatus) {
-                    page.classList.add('solved');
+                console.log(questionStatus);
+                console.log(index);
+                if (questionStatus.solved || data.current_question.id === questionStatus.question_id) {
+                    pagination.innerHTML+=`<button class="page active" onclick=loadQuestion(${index+1})>${index+1}</button>`;
                 }
-                page.textContent = index + 1;
-                page.addEventListener('click', () => loadQuestion(index+1));
-                pagination.appendChild(page);
+                else {
+                    pagination.innerHTML+=`<button class="page" onclick=loadQuestion(${index+1})>${index+1}</button>`;
+                }
             });
+            const testInput = document.getElementById('testInput');
+            testInput.value = data.current_question.sample_testcase.input;
+
         })
         .catch(error => {
             // Handle any errors
