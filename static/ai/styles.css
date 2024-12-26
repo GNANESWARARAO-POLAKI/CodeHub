@@ -11,6 +11,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    
 }
 
 header {
@@ -48,7 +49,6 @@ main {
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
     padding: 1rem;
-    height: calc(100vh - 180px); /* Adjusted to account for footer */
 }
 
 .left-panel {

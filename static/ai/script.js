@@ -39,10 +39,20 @@ function initializeSubmitButton() {
     const submitBtn = document.querySelector('.submit-btn');
     submitBtn.addEventListener('click', () => {
         const programCode = document.querySelector('#programInput').value;
-        const testInput = document.querySelector('#testInput').value;
+        const testInput = 'c'
+        const question_number = document.querySelector('#questionNumber').value;
         console.log('Submitting program:', programCode);
         console.log('Test cases:', testInput);
-        // Add your submission logic here
+        fetch(`/codelife/submit/${question_number}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded', // Or application/json, if your backend expects JSON
+            },
+            body: `code=${encodeURIComponent(programCode)}&language=c`, // Ensure keys match backend
+        }).then(response => response.json()).then(data => {
+            console.log('Submission result:', data);
+            
+        });
     });
 }
 
@@ -66,7 +76,7 @@ function loadQuestion(questionNumber) {
             return response.json();
         })
         .then(data => {
-            console.log(data);
+            // console.log(data);
             // Update the question content
             question.innerHTML = `
                 <h1>${data.current_question.title}'</h1>
@@ -83,10 +93,12 @@ function loadQuestion(questionNumber) {
             const pagination = document.getElementById('pagination');
             pagination.innerHTML = ''; 
             data.solved_status.forEach((questionStatus, index) => {
-                console.log(questionStatus);
-                console.log(index);
+                // console.log(questionStatus);
+                // console.log(index);
                 if (questionStatus.solved || data.current_question.id === questionStatus.question_id) {
-                    pagination.innerHTML+=`<button class="page active" onclick=loadQuestion(${index+1})>${index+1}</button>`;
+                    
+                    pagination.innerHTML+=`<button  class="page active" onclick=loadQuestion(${index+1})>${index+1}</button>
+                    <input type="hidden" id="questionNumber" value="${index+1}">`;
                 }
                 else {
                     pagination.innerHTML+=`<button class="page" onclick=loadQuestion(${index+1})>${index+1}</button>`;

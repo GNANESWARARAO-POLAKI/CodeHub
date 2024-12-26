@@ -7,7 +7,10 @@ from .models import *
 from .forms import *
 from django.contrib import messages
 
+import requests
 
+# url = 'http://172.30.100.208:8000/run/'
+url='http://127.0.0.1:8080/run/'
 @csrf_exempt
 @login_required
 def register(request,contest_id):
@@ -171,22 +174,50 @@ def question_page(request, contest_id):
     }
     return JsonResponse(response)
 
-
-def submit_code(request, contest_id, question_id):
+@csrf_exempt
+def submit(request,  question_id):
     user = get_object_or_404(User, id=request.user.id)
-    contest = get_object_or_404(Contests, id=contest_id)
-    question = get_object_or_404(Questions, id=question_id, contest=contest)
-    if request.method == 'POST':
-        code = request.POST.get('code')
-        language=request.POST.get('language')
-        submission = Submission.objects.create(
-            language=language,
-            code=code,
-            question=question,
-            participant=Participant.objects.get(user=user, contest=contest)
+    question = get_object_or_404(Questions, id=question_id)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    code = request.POST.get('code')
+    language = 'java'
+    testcases=Testcases.objects.filter(question=question)
+    testcases_count=testcases.count()
+
+
+    jsondata={
+        'testcases':[ testcase.serialize() for testcase in testcases],
+        'testcases_count':testcases_count,
+        'code':code,
+        'language':language,
+    }
+    output='failed'
+    try:
+        response = requests.post(
+            url,
+            json=jsondata
         )
-        submission.execute()
-        return JsonResponse({'output': submission.output})
+        
+
+        # Parse the API response
+        data = response.json()
+        if 'output' in data:
+            output = data['output']
+        else:
+            return JsonResponse({'error': 'Invalid response from the code execution API','output':'500'})
+    except requests.exceptions.HTTPError as errh:
+        return JsonResponse({'error': f"HTTP error occurred: {errh}"})
+    except requests.exceptions.ConnectionError as errc:
+        return JsonResponse({'error': f"Error connecting: {errc}"})
+    except requests.exceptions.Timeout as errt:
+        return JsonResponse({'error': f"Timeout error: {errt}"})
+    except requests.exceptions.RequestException as err:
+        return JsonResponse({'error': f"An error occurred: {err}"})
+
+    # Return the output of the code execution
+    return JsonResponse({'status': output})
+
 
 
 def is_solved(question,user):

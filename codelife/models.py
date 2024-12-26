@@ -43,8 +43,8 @@ class Testcases(models.Model):
         return f"TestCase for {self.question.title} (Hidden: {self.hidden})"
     def serialize(self):
         return {
-            'input':self.input_data,
-            'output':self.expected_output,
+            'input_data':self.input_data,
+            'expected_output':self.expected_output,
         }
 
 
