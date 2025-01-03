@@ -25,34 +25,25 @@ function initializeTabs() {
 }
 
 // Pagination
-function initializePagination() {
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => {
-        page.addEventListener('click', () => {
-            pages.forEach(p => p.classList.remove('active'));
-            page.classList.add('active');
-        });
-    });
-}
+
 
 function initializeSubmitButton() {
     const submitBtn = document.querySelector('.submit-btn');
     submitBtn.addEventListener('click', () => {
         const programCode = document.querySelector('#programInput').value;
-        const testInput = 'c'
         const question_number = document.querySelector('#questionNumber').value;
+        const language=document.getElementById('language').value;
         console.log('Submitting program:', programCode);
-        console.log('Test cases:', testInput);
         fetch(`/codelife/submit/${question_number}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded', // Or application/json, if your backend expects JSON
             },
-            body: `code=${encodeURIComponent(programCode)}&language=c`, // Ensure keys match backend
+            body: `code=${encodeURIComponent(programCode)}&language=${language}`, // Ensure keys match backend
         }).then(response => response.json()).then(data => {
             console.log('Submission result:', data);
             
-        });
+        }); 
     });
 }
 
@@ -90,22 +81,32 @@ function loadQuestion(questionNumber) {
             for(let i=0;i<data.current_question.lost_submissions;i++){
                 lives.innerHTML+=`<span class="heart">🩶</button>`;
             }
-            const pagination = document.getElementById('pagination');
-            pagination.innerHTML = ''; 
+             const pagination = document.getElementById('pagination');
+            pagination.innerHTML='';
+            current_index=0;
+            final_index=0;
             data.solved_status.forEach((questionStatus, index) => {
                 // console.log(questionStatus);
                 // console.log(index);
+                final_index=index;
                 if (questionStatus.solved || data.current_question.id === questionStatus.question_id) {
                     
-                    pagination.innerHTML+=`<button  class="page active" onclick=loadQuestion(${index+1})>${index+1}</button>
+                    pagination.innerHTML+=`<button  class="page active" onclick=loadQuestion(${questionStatus.question_id})>${index+1}</button>
                     <input type="hidden" id="questionNumber" value="${index+1}">`;
+                    current_index=index;
                 }
                 else {
-                    pagination.innerHTML+=`<button class="page" onclick=loadQuestion(${index+1})>${index+1}</button>`;
+                    pagination.innerHTML+=`<button class="page" onclick=loadQuestion(${questionStatus.question_id})>${index+1}</button>`;
                 }
             });
-            const testInput = document.getElementById('testInput');
-            testInput.value = data.current_question.sample_testcase.input;
+            if(current_index!=0){
+                pagination.innerHTML = `<button class="prev" onclick=loadQuestion(${data.current_question.id-1   })>◀</button>`+pagination.innerHTML; 
+            }
+            if(final_index!=current_index){
+            pagination.innerHTML+=`<button class="prev" onclick=loadQuestion(${data.current_question.id+1})>▶</button>`;
+            }
+            // const testInput = document.getElementById('testInput');
+            // testInput.value = data.current_question.sample_testcase.input;
 
         })
         .catch(error => {
@@ -120,7 +121,48 @@ function loadQuestion(questionNumber) {
 document.addEventListener('DOMContentLoaded', () => {
     updateTimer();
     initializeTabs();
-    initializePagination();
     initializeSubmitButton();
     loadQuestion(-1);
 });
+
+
+
+
+// require.config({
+//     paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.37.1/min/vs' }  
+// });
+
+// require(['vs/editor/editor.main'], function () {
+//     var editor = monaco.editor.create(document.getElementById('input-field'), {
+//         value: [
+//             'def hello_world():',
+//             '    print("Hello, world!")',
+//             '',
+//             'hello_world()'
+//         ].join('\n'),
+//         language: 'python',  // Set default language to Python
+//         theme: 'vs-dark',    // Set the theme to Dark Mode
+//         scrollbar: {
+//             vertical: 'auto',  // Enable vertical scrollbar
+//             horizontal: 'auto' // Enable horizontal scrollbar
+//         },
+//         minimap: {
+//             enabled: false  // Disable the minimap to reduce clutter
+//         },
+//         lineNumbers: 'on',  // Show line numbers
+//         wordWrap: 'on',  // Enable word wrapping
+//         autoClosingBrackets: true,  // Automatically close brackets
+//         autoIndent: true,  // Auto indent code
+//         suggest: {
+//             filterGraceful: true  // Enable graceful filtering for suggestions
+//         },
+//         scrollBeyondLastLine: false  // Disable scrolling beyond the last line
+//     });
+// });
+
+
+
+
+// editor text area 
+
+
