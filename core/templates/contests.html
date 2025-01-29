@@ -1,19 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <p>upcomming contests</p>
-    {% for contest in upcomming_contests %}
-    <hr>
-    {{contest.pk}} <br>
-    {{ contest.title }}<br>
-    {{ contest.start_date }}<br>
-    {{ contest.end_date }}<br>
-    {{ contest.venue }}
-    {% endfor %}
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<title>Contests</title>
+{% endblock %}
+
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link active">Contests</a>
+<a href="{% url 'core:home'%}" class="nav-link">About</a>
+{% endblock %}
+
+    {% block body %}
+ 
+    <div class="content">
+        <div class="contests-header">
+            <div class="contests-header-content">Codehub coding  Contests</div>
+        </div>
+        
+        <div class="contests-type">
+            <div class="contest-type active">Live</div>
+        </div>
+        <div class="live-contests">
+            {% for contest in upcomming_contests %}
+            <div class="contests-card" ><a  href="{% url 'codelife:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                <div class="contest-poster"><img src='{{contest.poster.url}}' alt="no img"></div>
+                <div class="contest-title">{{contest.title}}</div>
+                <div class="contest-text"><p>From :{{contest.start_date|date:"M-d-y h:iA"}}</p>
+                    <p>Duration :80min</p>
+                   <p> Venue :Coding Lab</p>
+                </div>
+                <div class="contest-timer" data-seconds="{{contest.seconds_now}}">{{contest.start_date|timesince}}</div>
+            </a> </div>
+       
+            {% endfor %}
+            {% for contest in upcomming_contests %}
+            <div class="contests-card">
+                <div class="contest-poster"><img src='{{contest.poster.url}}' alt="no img"></div>
+                <div class="contest-title">{{contest.title}}</div>
+                <div class="contest-text"><p>From :{{contest.start_date|date:"M-d-y h:iA"}}</p><!--|'DD-MM-YY HH:MM' -->
+                    <p>Duration :{{contest.duration}}min</p>
+                   <p> Venue :{{contest.venue}}</p>
+                </div>
+                <div class="contest-time">000:00:00</div>
+            </div>
+            {% endfor %}
+        </div>
+
+            <div class="contests-type">
+                <div class="contest-type active">Upcomming</div>
+            </div>
+            <div class="live-contests">
+                {% for contest in upcomming_contests %}
+                <div class="contests-card">
+                    <div class="contest-poster"><img src='{{contest.poster.url}}' alt="no img"></div>
+                    <div class="contest-title">{{contest.title}}</div>
+                    <div class="contest-text"><p>From :{{contest.start_date|timesince}}</p>
+                        <p>Duration :80min</p>
+                       <p> Venue :Coding Lab</p>
+                    </div>
+                    <div class="contest-time">000:00:00</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="contests-type">
+                <div class="contest-type active">Past</div>
+            </div>
+
+            <div class="live-contests">
+                {% for contest in upcomming_contests %}
+                <div class="contests-card">
+                    <div class="contest-poster"><img src='{{contest.poster.url}}' alt="no img"></div>
+                    <div class="contest-title">{{contest.title}}</div>
+                    <div class="contest-text"><p>From :{{contest.start_date|timesince}}</p>
+                        <p>Duration :80min</p>
+                       <p> Venue :Coding Lab</p>
+                    </div>
+                    <div class="contest-time">000:00:00</div>
+                </div>
+                {% endfor %}
+            </div>
+   </div>
+
+
+
+      {% endblock %}
+
+
+      {% block script %}
+      <script>
+       function UpdateTimers() {
+    // Select all elements with the class "contest-timer"
+    const contestTimers = document.querySelectorAll('.contest-timer');
+
+    contestTimers.forEach(contestTimer => {
+        // Get the current seconds from the "data-seconds" attribute
+        let seconds = parseInt(contestTimer.getAttribute('data-seconds'), 10);
+
+        if (seconds > 0) {
+            // Decrement the seconds
+            seconds--;
+            const hours = Math.floor(seconds / 3600);
+           const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            // Update the inner HTML to display the updated seconds
+            contestTimer.innerHTML = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            // Update the "data-seconds" attribute
+            contestTimer.setAttribute('data-seconds', seconds);
+        } else {
+            // If the timer reaches zero, display "Time's up!"
+            contestTimer.innerHTML = "Time's up!";
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Run UpdateTimers every second
+    setInterval(UpdateTimers, 1000);
+});
+      </script>
+      {% endblock %}
+
+    

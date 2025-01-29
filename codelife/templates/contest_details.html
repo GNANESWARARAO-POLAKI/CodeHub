@@ -1,19 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>codelife contest Details</title>
-</head>
-<body>
-    <div class="contest-details">
-    title :{{contest.title}}<br>Registration count :{{ registration_count }}<br>{{contest.status}}<hr>
-    descreption :{{ contest.description }}<br><hr>
-    form:{{contest.start_date}} to {{contest.end_date}} <br>
-    <img src="{{ contest.poster.url }}" alt="Contest Poster" style="max-width: 100%; height: auto;"><br>
+{% extends 'base.html' %}
+{% load static %}
 
+{% block header %}
+    <title>codelife contest Details</title>
+{% endblock %}
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link active">Contests</a>
+<a href="{% url 'core:home'%}" class="nav-link">About</a>
+{% endblock %}
+{% block body %}
+<div class="content">
+
+    <div class="contests-header">
+        <div class="contests-header-content"><p>{{contest.title}}</p>
+            <p style="font-size: 0.8rem;color: var(--text-primary);">🗓️ {{contest.start_date}} - 🗓️ {{contest.end_date}}</p>
+        </div>
+        <div class="contest-type active">{{contest.status}}</div>
     </div>
+    <hr>
+    <div class="contests-type">
+        <h3>Description</h3>
+    </div>
+
+
+    
+    <div class="contest-description">
+        {{ contest.description|safe }}
+        <!-- <p>form:{{contest.start_date}} to {{contest.end_date}}</p> -->
+         {% if contest.poster %}
+        <img class='description-image' src="{{ contest.poster.url }}" alt="Contest Poster" >
+        {% endif %}
+    </div>
+    <hr>
+    <p>Registration count :{{ registration_count }}</p>
+
     {% if request.user.is_authenticated %}
+    <div class="contest-registration-content">
+        
     {% if contest.status == 'Past' %}
         <div class="past-contest">
             <p>Winner: {{ contest.winner }}</p>
@@ -30,14 +54,20 @@
                 </form>
             </div>
         {% endif %}
-    {% elif contest.status == 'Feature' %}
+    {% elif contest.status == 'Upcoming' %}
+    {% if is_participant %} <p>You already registred to this contest</p>{% else %}
         <div class="register">
             <form action="{% url 'codelife:register' contest.id %}" method="post">
                 {% csrf_token %}
                 <input type="submit" value="Register">
             </form>
         </div>
+        {% endif %}
+
+        
+
     {% endif %}
+ 
 
     {% if request.user.is_staff %}
         <div class="edit">
@@ -59,6 +89,8 @@
 {% else %}
     <p>Please log in to participate.</p>
 {% endif %}
+</div>
+</div>
 
-</body>
-</html>
+
+{% endblock %}

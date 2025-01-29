@@ -21,6 +21,7 @@ app.add_middleware(
 class TestCase(BaseModel):
     input_data: str
     expected_output: str
+    hidden: bool
 
 class CodeRequest(BaseModel):
     language: str
@@ -76,7 +77,8 @@ def run_code(language: str, code: str, testcases: list[TestCase]):
                     return {'success':False,'error':'compilation_error','error_message':error_message},[]
                     # raise HTTPException(status_code=400, detail=f"Compilation Error: {error_message}")
             # Run the compiled code for each test case
-            results = []
+            hidden = []
+            sample=[]
             for i,testcase in enumerate(testcases):
                 run_process = subprocess.run(
                     run_cmd,
@@ -88,28 +90,30 @@ def run_code(language: str, code: str, testcases: list[TestCase]):
                     # Capture runtime errors for this test case
                     error_message = run_process.stderr.decode()
                     print(f"Runtime Error: {error_message}")  # Debug: print the error message
-                    if i==0:
-                        sample_testcase={'success':False,'error':'runtime_error','error_message':error_message}
-                        break
-                    results.append({'success':False, "error":'runtime_error','error_message':error_message})
-                    break
+                    if testcase.hidden==False:
+                        sample.append({'success':False,'error':'runtime_error','error_message':error_message})
+                    else:
+                        hidden.append({'success':False, "error":'runtime_error'})
                 else:
                     output = run_process.stdout.decode()
                     if output.strip() != testcase.expected_output.strip():
-                        # Capture wrong answers for this test case
-                        if i==0:
-                            print(f"Expected Output: {testcase.expected_output.strip()}")
-                            print(f"Your Output: {output.strip()}")
-                            sample_testcase={'success':False,'error':'wrong_answer','your output':output.strip()}
-                            break
-                        print(f"Wrong Answer: {output.strip()}")
-                        results.append({'success':False,"error":'wrong_answer'})
-                        break
+                        if output:
+                            output=output.strip()
+                        else:
+                            output=None
+                        if testcase.hidden==False:
+                            sample.append({'success':False,'error':'wrong_answer','input':testcase.input_data.strip(),'expected_output':testcase.expected_output.strip(),'actual_output':output})
+                            # print(f"Expected Output: {testcase.expected_output.strip()}")
+                            # print(f"Your Output: {output}")
+                        else:
+                            hidden.append({'success':False,"error":'wrong_answer'})
+                        # print(f"Wrong Answer: {output}")
                     else:
-                        if i==0:
-                            sample_testcase={'success':True,'error':None}
-                        results.append({'success':True, "error": None})
-            return sample_testcase,results
+                        if testcase.hidden==False:
+                            sample.append({'success':True,'error':None,'input':testcase.input_data.strip(),'expected_output':testcase.expected_output.strip(),'actual_output':output.strip()})
+                        else:
+                            hidden.append({'success':True, "error": None})
+            return sample,hidden
 
     except HTTPException as http_err:
         # If a specific HTTP exception was raised, forward it

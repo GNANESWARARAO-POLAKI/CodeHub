@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+# import pymysql
+# pymysql.install_as_MySQLdb()
 
 from pathlib import Path
 
@@ -22,10 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-)$!^7yr&8v3mrjg6iiy*c5!*xr#bh$vx)0@1qv!+cj!%jeprl^'
 
-# SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = False
 DEBUG=True
-
+ 
 
 ALLOWED_HOSTS = ['*']
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # 'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -51,7 +53,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware', 
 ]
@@ -81,10 +82,26 @@ WSGI_APPLICATION = 'CodeHub.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'database',
+        'USER': 'qwerty',
+        'PASSWORD': '4544',
+        'HOST': 'localhost',  # Or the database server address
+        'PORT': '5432',       # Default PostgreSQL port
     }
+    #  'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'codehub',  # Replace with your database name
+    #     'USER': 'root',       # Default XAMPP MySQL username
+    #     'PASSWORD': '',       # Leave blank if there's no password (default in XAMPP)
+    #     'HOST': '127.0.0.1',  # Localhost
+    #     'PORT': '3306',       # Default MySQL port
+    # }
 }
 
 
@@ -112,7 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata' 
 
 USE_I18N = True
 
@@ -129,7 +146,7 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # media urls and directory 
 
@@ -147,7 +164,6 @@ AUTH_USER_MODEL='core.User'
 
 #static in production 
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 LOGIN_URL = '/login/'
 

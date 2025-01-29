@@ -1,17 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <form action="{% url 'register' %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="submit">
-    </form>
-    {{ message }}
-    
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<title>Image Cropping</title>
+<style>
+  
+    input,select,.formdata button{
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-secondary);
+        color: var(--text-color);
+        padding: 10px;
+        border-radius: 10px;
+        margin-left: 10px;
+        min-width: 50%;
+    }
+    .formdata button{
+        min-width: max-content;
+        width: 20%;
+        margin-left: 20%;
+        cursor: pointer;
+        background-color: var(--accent-color);
+        color: var(--accent-text);
+        margin: 20px 0px 20px 25%;
+    }
+    label{
+         width: 100px;
+        display:inline-flex;
+        /* padding-right: 100px; */
+    }
+    .formdata{
+       /* padding: 10px 100px;  */
+       
+       padding: 0 10% ;
+       width: 100%;
+       box-sizing: border-box;
+       
+    }
+    #imageForm{
+        margin: 10%;    }
+    #cropCanvas {
+    z-index: 0;
+    border: 1px solid red;
+    margin-top: 10px;
+    display: none;
+}
+   
+</style>
+{% endblock %}
+
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link active">Contests</a>
+<a href="{% url 'core:home'%}" class="nav-link">About</a>
+{% endblock %}
+
+{% block body %}
+
+{% if is_register != request.user.is_authenticated %}
+<div id="form-content">
+    <h3>{% if is_register %}Register{% else %}Edit Profile{% endif %} </h3>
+    <div class="formdata">
+        <form method="POST" enctype="multipart/form-data" id="imageForm">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="hidden" id="croppedImageData" name="cropped_image">
+            <canvas id="cropCanvas" ></canvas>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+        <div id="image-container">
+            <div id="imageContainer">
+                <canvas id="mainCanvas"></canvas>
+            </div>
+            <button onclick="submit_to_crop()">Submit</button>
+        </div>
+      </div>  
+        
+</div>
+{% elif is_register %}
+Logout to register to new account
+{% else %}
+<p>Please login</p> 
+{% endif %}
+{% endblock %}
+
+
+{% block script %}
+<script src="{% static 'core/js/script.js' %}"></script>
+{% endblock %}

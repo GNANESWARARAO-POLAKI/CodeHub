@@ -1,13 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser,AbstractBaseUser
-from django.utils.timezone import now
+from django.utils.timezone import now,localtime
+from django.core.exceptions import ValidationError
 
 class User(AbstractUser):
-    phone=models.CharField(max_length=10,null=True)
+    phone=models.CharField(max_length=10,null= True)
     email=models.EmailField(unique=True,blank=False)
     jntuno=models.CharField(max_length=10,null=False,blank=False)
     date_joined=models.DateField(auto_now=True)
-    image=models.ImageField(upload_to='profile_pictures/',null=True,blank=True,default='default.jpg')
+    image=models.ImageField(upload_to='profile_pictures/',null=True,blank=True,default='profile_pictures/default.jpg')
     branch=models.CharField(max_length=10)
     college=models.CharField(max_length=100,default='GMRIT')
 
@@ -32,6 +33,8 @@ class Contests(models.Model):
     poster=models.ImageField(null=True,upload_to='contest_posters/')
     winner=models.CharField(max_length=40,null=True,blank=True)
     runner=models.CharField(max_length=40,null=True,blank=True)
+    # duration=models.PositiveIntegerField(default=60)
+    # is_draft=models.BooleanField(default=False)
     def clean(self):
         if self.start_date >= self.end_date:
             raise ValidationError("Start date must be earlier than end date.")
@@ -44,7 +47,7 @@ class Contests(models.Model):
 
     @property
     def status(self):
-        current_time = now()
+        current_time = localtime(now())
         if current_time < self.start_date:
             return "Upcoming"
         elif self.start_date <= current_time <= self.end_date:

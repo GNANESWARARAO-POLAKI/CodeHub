@@ -17,6 +17,6 @@ class TestcaseForm(forms.ModelForm):
 # forms.py
 from django.forms import modelformset_factory
 
-# Create the formset for the Testcase model
-TestcaseFormSet = modelformset_factory(Testcases, form=TestcaseForm, extra=0)  # "extra=1" will show one empty form initially
-
+# Create the formset for the Testcase model with the ability to add and delete test cases
+TestcaseFormSet = modelformset_factory(Testcases, form=TestcaseForm, can_delete=True)
+ 

@@ -1,7 +1,7 @@
 from django.db import models
 from core.models import * 
 from django.contrib.auth import get_user
-
+from django.utils.timezone import now,localtime 
 
 # Create your models here.
 
@@ -45,6 +45,7 @@ class Testcases(models.Model):
         return {
             'input_data':self.input_data,
             'expected_output':self.expected_output,
+            'hidden':self.hidden,
         }
 
 
@@ -63,10 +64,15 @@ class Participant(models.Model):
         if self.pk is not None:
             previous = Participant.objects.get(pk=self.pk)
             if self.score != previous.score:
-                self.last_activity = now()
+                self.last_activity = localtime(now())
             else:
                 self.last_activity = previous.last_activity
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+            questions = Questions.objects.filter(contest=self.contest)
+            for question in questions:
+                Tempcode.objects.create(question=question, participant=self)
     def deduce_life(self):
         if self.lives > 0:
             # Deduct a life
@@ -94,7 +100,44 @@ class Submission(models.Model):
     score = models.FloatField(null=True, blank=True) 
     time=models.FloatField(null=True)
     memory=models.PositiveIntegerField(null=True)
+    json_data=models.JSONField(default=dict)
     def __str__(self):
         return f"Submission by {self.participant.user.username} for {self.question.title}"
+    
+default_codes = {
+    "c": """#include<stdio.h>
+int main() {
+    printf("Hello, World!\\n");
+    return 0;
+}""",
+    "cpp": """#include<iostream>
+using namespace std;
+int main() {
+    cout << "Hello, World!" << endl;
+    return 0;
+}""",
+    "python": """#write your code heare""",
+    "java": """public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}"""
+}
 
-
+class Tempcode(models.Model):
+    participant=models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='temporary_codes')
+    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='temporary_codes')
+    c=models.TextField(default=default_codes['c'])
+    python=models.TextField(default=default_codes['python'])
+    cpp=models.TextField(default=default_codes['cpp'])
+    java=models.TextField(default=default_codes['java'])
+    def __str__(self):
+        return f"current Tempcodes for the {self.participant} in the question {self.question}"
+    def serialize(self):
+        return {
+            'python':self.python,
+            'java':self.java,
+            'c':self.c,
+            'cpp':self.cpp
+        }
+     

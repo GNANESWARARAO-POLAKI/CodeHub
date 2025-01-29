@@ -1,16 +1,74 @@
 {% load static %}
 
+ 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coding Problem Page</title>
-    <link rel="stylesheet" href="{% static '/ai/styles.css'%}">
+    <link rel="stylesheet" href="{% static 'ai/styles.css' %}">
+    <link  id='editor_theme' href="{% static 'onlinefiles/vs2015.css' %}" rel="stylesheet" />
+    <script src="{% static 'onlinefiles/highlight.js' %}" type="text/javascript"></script>
+
+    <style>
+    #leaderboard{
+        display: none;
+    }
+     /* @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap'); */
+     #preCode {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            /* background: #1b1b1b; */
+        }
+
+        #preCode code {
+            padding: 15px;
+            height: 100%;
+            width:100%;
+            /* font-family: "Courier New", monospace; */
+            font-weight: 400;
+            font-size: 12pt;
+            line-height: 150%;
+            overflow-y: scroll;
+            overflow-x: auto;
+        }
+        .hljs {
+    background: var(--bg-secondary);
+    /* color: #000; */
+}
+        textarea {
+            /* font-family: "Courier New", monospace; */
+            font-weight: 400;
+            font-size: 12pt;
+            line-height: 150%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            padding: 15px;
+            z-index: 2;
+            overflow-x: auto;
+            overflow-y: scroll;
+            white-space: nowrap;
+            background-color: rgba(0,0,0,0);
+            color: rgba(0,0,0,0);
+            caret-color:var(--text-primary);
+        }
+        
+        </style>
 </head>
 <body>
+    {% if contest.status == 'Ongoing' %}
     <header>
-        <div class="logo">Logo</div>
+        <div class="logo">CodeLife</div>
         <div class="timer">00:00:00</div>
         <div id="lives">
             <!-- <span class="heart">❤️</span>
@@ -23,15 +81,22 @@
     </header>
     <div id="contest" data-contest-id="{{ contest.id }}"></div>
     <main>
-        <div class="content">
-            <div class="left-panel">
+        <div class="content" id="content">
+            <div class="left-panel" id="left-panel">
                 <nav>
-                    <button class="tab active">Description</button>
-                    
-                    <button class="tab">Leaderboard</button>
+                    <button class="tab active" data-target="problem-content" >Description</button>
+                    <button class="tab" data-target="leaderboard-content">Leaderboard</button>
                 </nav>
-                
-                <div id="problem-content">
+                <div id="leaderboard-content" class="tab_content" style="display: none;">
+                    <h3>Leaderboard</h3>
+                    <table>
+                        <th><td>Rank</td>
+                        <td>Username</td>
+                        <td>Score</td></th>
+                    </table>
+                    <!-- leader board content -->
+                </div>
+                <div id="problem-content" class="tab_content">
                     <h1 id="title">Stable array</h1>
                     <h2>Problem Statement</h2>
                     <p>You're given an array AA of length NN.<br>
@@ -57,37 +122,57 @@
                     <p>For each test case, output on a new line the number of seconds after which AA becomes stable.</p>
                 </div>
             </div>
+           
 
-            <div class="right-panel">
-                <div class="editors-container">
-                    <div class="code-editor program-editor">
+            <div class="right-panel" id="right-panel">
+                <div class="editors-container" id="editors-container">
+                    <div class="program-editor">
                         <div class="editor-header">
                             <div class="controls">
-                                <select id="language">
-                                    <option value="c">C</option>
+                                <select id="language" data-tooltip="click to change language">
                                     <option value="python">Python</option>
-                                    <option value="javascript">JavaScript</option>
+                                    <option value="c">C</option>
+                                    <option value="cpp">C++</option>
                                     <option value="java">Java</option>
-                                    
                                 </select>
                                 <div class="score">Score:100</div>
                                 <div class="icons">
-                                    <button class="icon">🔄</button>
-                                    <button class="icon">⚙️</button>
-                                    <button class="icon">↗️</button>
+                                    <button class="icon" data-tooltip="refresh code">🔄</button>
+                                    <button class="icon" data-tooltip="cange font-size">⚙️</button>
+                                    <button class="icon" id="toggle_full_screen" data-tooltip="full screen editor">↗️</button>
+                                    <button class='icon' id="toggle_button" data-tooltip="change theme">🔆</button>
                                 </div>
                             </div>
                         </div>
-                        <textarea id="programInput" placeholder="Write your program here..."></textarea>
+                      
+                    <div class="input-field">
+                        <pre id="preCode"><code id="codeBlock" class="language-python"></code></pre>
+                        <textarea id="c-code" class="hidden-code" rows="10" cols="50"></textarea>
+                        <textarea id="cpp-code" class="hidden-code" rows="10" cols="50"></textarea>
+                        <textarea id="python-code" class="hidden-code" rows="10" cols="50"></textarea>
+                        <textarea id="java-code" class="hidden-code" rows="10" cols="50"></textarea>                      
+                        <textarea id="textarea1" wrap="soft" spellcheck="false" placeholder="Write your program here..."></textarea>
+                     </div>
+                       
+                    <!-- <textarea id="programInput" placeholder="Write your program here..."></textarea> -->
                     </div>
-                    <div class="code-editor test-editor">
-                        <div class="editor-header">Test Input</div>
-                        <textarea id="testInput" placeholder="Enter test cases here..."></textarea>
+
+                    <div class="test-editor" style="min-height:fit-content;" >
+                        <div class="editor-header" id="final-result-header">Final Header</div>
+                            <div class="text-content" style="height:min-content;max-height: max-content;" id="final-result">
+                         none
+                        </div>
                     </div>
                 </div>
-                <button class="submit-btn">Submit</button>
+                <button class="submit-btn" id="submit-btn">Submit</button>
             </div>
         </div>
+
+        <div id="mainframe-cover">
+            <p id="simple-loading">
+           Loading     <!-- <span>L</span><span>o</span><span>a</span><span>d</span><span>i</span><span>n</span><span>g</span>--><span>.</span><span>.</span><span>.</span> 
+            </p>
+                </div>
     </main>
 
     <footer>
@@ -101,7 +186,76 @@
             <button class="next">▶</button> -->
         </div>
     </footer>
+    
+    <script src="{% static 'ai/script.js' %}"></script>
+    <script src="{% static 'ai/submit.js' %}"> </script>
+    <script type="text/javascript">
+        const textarea1 = document.getElementById("textarea1");
+        const codeBlock = document.getElementById("codeBlock");
 
-    <script src="{% static '/ai/script.js' %}"></script>
+        function updateCode() {
+            let content = textarea1.value;
+            content = content.replace(/&/g, '&amp;');
+            content = content.replace(/</g, '&lt;');
+            content = content.replace(/>/g, '&gt;');
+            codeBlock.innerHTML = content;
+            highlightJS(); 
+            lang=document.getElementById('language').value;
+            document.getElementById(lang+'-code').innerHTML=textarea1.value;
+        }
+        function highlightJS() {
+            document.querySelectorAll('pre code').forEach((el) => {
+                hljs.highlightElement(el);
+            });
+        }
+        textarea1.addEventListener("input", () => {
+            updateCode();
+        });
+        textarea1.addEventListener("scroll", () => {
+            codeBlock.scrollTop = textarea1.scrollTop;
+            codeBlock.scrollLeft = textarea1.scrollLeft;
+        });
+        document.getElementById("language").addEventListener("change", function () {
+            document.getElementById("codeBlock").className = 'language-'+this.value;
+            textarea1.value =document.getElementById(this.value+'-code').value;
+            document.getElementById("codeBlock").innerHTML = document.getElementById(this.value+'-code').value;
+            updateCode();
+        });
+        function updateTimer() {
+    const timerElement = document.querySelector('.timer');
+    let seconds = {{current_time}};
+
+    
+    
+    let timeinertval=setInterval(()=>{
+        seconds--;
+        if (seconds<=0){
+        console.log('contentst ended');
+        timerElement.textContent = 'Time-up!';
+        ContestEnded();
+        clearInterval(timeinertval);
+       }
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        timerElement.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }, 1000);
+}
+    </script>
+    
+            {% elif contest.status == 'Upcoming' %}
+                <div class="maincontent-cover" >
+                <p>It is an up comming contest <a href="{% url 'codelife:contest_details' contest.id %}">click heare to view details</a></p>
+                </div>
+                {% elif contest.status == 'Past' %}
+                <div class="maincontent-cover" style="display: flex;">
+                    Contest ended
+                </div>
+                {% endif %}
+
+                <script src="{% static 'ai/theme.js' %}"></script>
 </body>
 </html>
+
+
+

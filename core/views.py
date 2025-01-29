@@ -3,24 +3,16 @@ from django.contrib.auth import authenticate,login,logout
 from django.http import HttpResponse
 from .forms import *
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now,localtime
+import base64
+from django.core.files.base import ContentFile
+
 # Create your views here.
 
 def home(request):
-    return render(request,'index.html')                                       
-def register(request):
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST, request.FILES)
-        
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])  # Hash the password
-            user.save()
-            return redirect('core:login')# Redirect to the login page
-        else:
-            return render(request, 'register.html', {'form': form, 'message': 'Registration failed. Check your input.'})
-    
-    form = UserRegistrationForm()
-    return render(request, 'register.html', {'form': form, 'message': 'Welcome to the registration page'})
+    return render(request,'index.html')   
+
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -40,6 +32,56 @@ def user_login(request):
     form = LoginForm()
     return render(request, 'login.html', {'form': form})
 
+
+
+def user_profile(request,username):
+    user=get_object_or_404(User,username=username)
+    form=UserRegistrationForm(instance=user)
+    return render(request,'user_profile.html',{'user':user,'form':form})
+
+def register(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST, editable=True)
+        if form.is_valid():
+            user = form.save(commit=False)
+            cropped_image_data = request.POST.get('cropped_image')
+            if cropped_image_data:
+                format, imgstr = cropped_image_data.split(';base64,') 
+                ext = format.split('/')[-1] 
+                image_data = base64.b64decode(imgstr)  
+                image_file = ContentFile(image_data, name=f"cropped_image.{ext}")
+                user.image = image_file 
+                user.save()
+            else:
+                user.save()
+            return redirect('core:login')  # Redirect to login page
+    else:
+        form = UserRegistrationForm(editable=True)
+    return render(request, 'register.html', {'form': form, 'is_register': True})
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST, request.FILES, instance=request.user, editable=False)
+        if form.is_valid():
+            user = form.save(commit=False)
+            cropped_image_data = request.POST.get('cropped_image')
+            if cropped_image_data:
+                format, imgstr = cropped_image_data.split(';base64,') 
+                ext = format.split('/')[-1] 
+                image_data = base64.b64decode(imgstr)  
+                image_file = ContentFile(image_data, name=f"{user.username}_image.{ext}")
+                user.image = image_file 
+                user.save()
+            elif 'image-clear' in request.POST: 
+                user.image.delete(save=False)  
+                user.image = None
+                user.save() 
+            return redirect('core:home')
+    else: 
+        form = UserRegistrationForm(instance=request.user, editable=False)
+    return render(request, 'register.html', {'form': form, 'is_register': False})
+
 @login_required
 def user_logout(request):
     logout(request)
@@ -54,6 +96,7 @@ def create_contest(request):
         if form.is_valid():
             form.save()
             return render(request,'index.html')
+        return render(request,'create_contest.html',{'form':form,'message':''})
     else:
         form=ContestCreationForm()
         return render(request,'create_contest.html',{'form':form,'message':''})
@@ -65,9 +108,10 @@ def edit_contest(request, contest_id):
     if request.method == 'POST':
         form = ContestCreationForm(request.POST,request.FILES, instance=contest)
         if form.is_valid():
-            form.save()  
-
-            return redirect('codelife:contest_details', contest_id=contest.id)
+            contest_type=['','codelife','compticode','debugcode']
+            
+            form.save() 
+            return redirect(contest_type[int(form.cleaned_data['contest_type'])]+':contest_details', contest_id=contest.id)
     else:
         form = ContestCreationForm(instance=contest)
     
@@ -76,6 +120,8 @@ def edit_contest(request, contest_id):
 
 def contests(request):
     upcomming_contests=Contests.objects.filter(is_active=True)
+    for contest in upcomming_contests:
+        contest.seconds_now=int((contest.start_date-localtime(now())).total_seconds())
     past_contests=Contests.objects.filter(is_active=False)
     return render(request,'contests.html',{'upcomming_contests':upcomming_contests,'past_contests':past_contests})
 

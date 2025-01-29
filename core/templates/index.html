@@ -1,16 +1,21 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <h1>Welcome to My Django Home Page!</h1>
-    {% if request.user %} <a href="{% url 'core:logout' %}">Logout</a>
-    {{ request.user }} <a href="{% url 'core:login'%}">Login</a>
-    {% endif  %}
-</body>
-</html>
+{% block head %}
+<title>Home</title>
+{% endblock %}
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link active">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link">Contests</a>
+<a href="{% url 'core:home'%}" class="nav-link">About</a>
+{% endblock %}
+
+{% block body %}
+    <h1>Welcome to Home Page CodeHub!</h1>
+    {% if request.user.is_authenticated %}
+        {{ request.user.username }}
+    {% endif %}
+{% endblock %}
+{% block script %}
+<script src="{% static 'core/js/script.js' %}"></script>
+{% endblock %}
+

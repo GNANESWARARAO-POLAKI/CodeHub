@@ -1,25 +1,65 @@
 from django import forms
 from .models import User,Contests
-
+import jinja2
 class UserRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput(attrs={
-        'placeholder': 'Enter your password',
-        'class': 'form-control',
-    }))
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Enter your password',
+            'class': 'form-control',
+        }),
+        required=False 
+    )
+    username=forms.CharField(
+        widget=forms.TextInput(attrs={'placeholder':'Enter user name'})
+    )
     BRANCH_CHOICES = [
         ('CSE', 'Computer Science'),
         ('ECE', 'Electronics and Communication'),
         ('ME', 'Mechanical Engineering'),
         ('EEE', 'Electrical Engineering'),
     ]
-    branch = forms.ChoiceField(choices=BRANCH_CHOICES, widget=forms.Select(attrs={
-        'class': 'form-select',
+    branch = forms.ChoiceField(
+        choices=BRANCH_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    image = forms.ImageField(required=False, widget=forms.ClearableFileInput(attrs={
+        'class': 'form-control',
     }))
 
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'jntuno', 'branch', 'college', 'image']
 
+    def __init__(self, *args, **kwargs):
+        self.editable = kwargs.pop('editable',True)
+        super().__init__(*args, **kwargs)
+        if not self.editable:
+            for field in ['username']:
+                self.fields[field].widget.attrs['readonly'] = True
+                self.fields[field].required = False
+            self.fields['password'].widget = forms.HiddenInput()
+        else:
+            self.fields['password'].required = True
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if not self.instance.pk: 
+            if User.objects.filter(username=username).exists():
+                raise forms.ValidationError("A user with that username already exists.")
+        else:
+            existing_user = User.objects.filter(username=username).exclude(pk=self.instance.pk)
+            if existing_user.exists():
+                raise forms.ValidationError("A user with that username already exists.")
+        return username
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        password = self.cleaned_data.get('password')
+        if password:
+            user.set_password(password)
+        if commit:
+            user.save()
+        return user 
 
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={
@@ -43,7 +83,7 @@ class ContestCreationForm(forms.ModelForm):
     }, format='%Y-%m-%dT%H:%M'))
     class Meta:
         model=Contests
-        fields=['title','description','start_date','end_date','venue','contest_type','poster','contest_type']
+        fields=['title','description','start_date','end_date','venue','contest_type','poster']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
