@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<title>{{user.username}}'s profile</title>
+{% endblock %}
+
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link">Contests</a>
+<a href="{% url 'core:home'%}" class="nav-link">About</a>
+{% endblock %}
+
+
+{% block body %}
+   <div class="total-profile-content">
+        <div class="left-pannel">
+            <div class="profile-image">
+                <img src="{% if user.image %}{{ user.image.url }}{% else %}/media/profile_pictures/default.jpg{% endif %}" alt="no image" style="width: 100%;">
+            </div>
+            <div class="user-name">{{user.username}}</div>
+        </div>
+        
+        <div class="right-pannel">
+           
+            <div class="basic-details">
+                <h2>{{user.first_name|capfirst}} {{user.last_name|capfirst}}</h2> 
+                <h3>Contact information </h4>
+                <div class="contact-info"> <p>&#9993;  {{user.email}}</p>
+                    <p>&#9742; {{user.phone}}</p></div>
+               
+               <h3>Accadamic information  </h4>
+                <div class="college"><p>College : {{user.college}}</p>
+                    <p>Reg.No. : {{user.jntuno}}</p>
+                    <p>Branch : {{user.branch}}</p></div>
+            </div>
+            <a class='center-link' href="/edit_user">Edit</a>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+
+   

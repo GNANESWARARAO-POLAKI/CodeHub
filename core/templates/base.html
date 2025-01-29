@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    {% block  head %} {% endblock %}
+</head>
+<body>
+    <header>
+        <div class="nav-logo">CodeHub</div>
+        <div class="nav-links">
+            <div class="nav-contents">
+                {% if request.user.is_authenticated %}
+                {% block nav %}{% endblock %}
+                {% else %}
+                <a href="{% url 'core:login'%}" class="nav-link">Login</a>
+                <a href="{% url 'core:register'%}" class="nav-link">Register</a>
+                {% endif %}
+            </div>
+            <button id='theme-toggle'class="theme-toggle">🔆</button>
+            {% if request.user.is_authenticated %}
+            <div class="profile-container" onclick="viewprofile()">
+                <img src="{% if request.user.image %}{{ request.user.image.url }}{% else %}/media/profile_pictures/default.jpg{% endif %}" alt="Profile Image">
+            </div>
+            {% endif %}
+        </div>
+    </header>
+    <main>
+        {% if request.user.is_authenticated %}
+        <div id="profile-info" class="profile-information">
+            <div id="profile-info-content" class="profile-information-content hide">
+                <div class="profile-header"><div class="profile-container" style="cursor:auto;">
+                    <img src="{% if request.user.image %}{{ request.user.image.url }}{% else %}/media/profile_pictures/default.jpg{% endif %}" alt="Profile Image">
+                </div>
+                <div class="profile-name"> {{request.user.username}}</div>
+                <button id="close-btn" class="close-button" onclick="closeProfile()">×</button></div>
+                <div class="profile-links">
+                        <a href="{% url 'core:user_profile' request.user.username %}" class="profile-link-item">View Profile</a>
+                        <a href="{% url 'core:edit_profile'%}" class="profile-link-item">Edit Profile</a>
+                        <a href="{% url 'core:logout'%}" class="profile-link-item">Logout</a>
+                </div>
+            </div>
+            
+        </div>
+        {% endif %}
+        {% block body %}{% endblock %}
+    </main>
+</body>
+<script src="{% static 'core/js/script.js' %}"></script>
+{% block script %} {% endblock %}
+</html>
