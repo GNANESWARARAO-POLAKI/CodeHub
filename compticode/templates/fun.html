@@ -1,0 +1,90 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play GIF for One Cycle</title>
+</head>
+<body>
+
+    <img id="heart" src="sad-.gif" alt="Heart Image" width="200">
+    <button onclick="playGifOnce()">Play Once</button>
+
+    <script>
+        let img = document.getElementById("heart");
+        let gifSrc = "sad.gif"; // GIF File
+        let staticSrc = "ada.gif"; // First frame of GIF as a static image
+        let gifDuration = 1800; // Duration of one GIF cycle in milliseconds (Adjust this!)
+
+        function playGifOnce() {
+            img.src = gifSrc; // Start GIF
+            
+            setTimeout(() => {
+                img.src = staticSrc; // Stop GIF after one full cycle
+            }, gifDuration);
+        }
+    </script>
+
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reverse Diagonal Sparkle Loading Effect</title>
+    <style>
+        /* Container styling */
+        div {
+            position: relative;
+            display: inline-block;
+            font-size: 24px;
+            font-weight: bold;
+            color:transparent;
+            /* color: ; Hide text */
+            background-color: rgb(181, 179, 179); /* Base dark color */
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        /* Sparkling cover */
+        div::before {
+            content: "";
+            position: absolute;
+            top: -150%;
+            left: -150%;
+            width: 300%;
+            height: 300%;
+            background: linear-gradient(-45deg, rgba(167, 166, 166, 0.9), rgb(167, 166, 166)); /* Slightly different color */
+            animation: reverseDiagonalSparkle 2s linear infinite;
+            opacity: 0.8;
+            box-shadow: 0 0 15px rgba(167, 166, 166, 0.7), 0 0 30px rgba(170, 170, 170, 0.6); /* Glowing effect */
+        }
+
+        /* Animation for sparkling and diagonal movement */
+        @keyframes reverseDiagonalSparkle {
+            0% {
+                transform: translate(0, 0);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translate(-50%, 50%) rotate(45deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, 50%) rotate(90deg);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Reverse Diagonal Sparkle Loading Effect</h2>
+
+    <div class="animated-text">This text is fully covered with a loading effect.</div>
+
+</body>
+</html>

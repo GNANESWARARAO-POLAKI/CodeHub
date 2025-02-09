@@ -49,7 +49,7 @@ def register(request):
                 format, imgstr = cropped_image_data.split(';base64,') 
                 ext = format.split('/')[-1] 
                 image_data = base64.b64decode(imgstr)  
-                image_file = ContentFile(image_data, name=f"cropped_image.{ext}")
+                image_file = ContentFile(image_data, name=f"{request.POST['username']}.{ext}")
                 user.image = image_file 
                 user.save()
             else:

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link active">Contests</a>
+<a href="{% url 'core:home'%}" class="nav-link">About</a>
+{% endblock %}
+
+
+{% block body %}
+<div class="content">
+    <div class="contests-header">
+        <div class="contests-header-content">{{ contest.title }}</div> 
+        <div class="contest-type active">{{contest.status}}</div>
+    </div>
+<hr>
+<div class="winners">
+    {% if contest.status == 'past' %}
+    {% for winner in winners %}
+    <div class="winner-card">
+        <div class="winner-name">{{winner.user.username}}</div>
+        <div class="winner-score">{{winner.score}}</div>
+    </div>
+    {% endfor %}
+    {% else %}  
+    <div class="winner-card">
+        <div class="winner-name">winners not anounced at</div>
+    </div>
+    {% endif % }
+</div>
+</div>
+
+{% endblock %}
+

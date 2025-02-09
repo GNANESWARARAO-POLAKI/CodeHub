@@ -30,14 +30,16 @@ function get_leaderboard(){
     }
     ).then(data=>{
 
-        leaderboard.innerHTML=`<h1>Leaderboard</h1><table id="leaderboard-table"><thead><tr><td>Rank</td><td>Username</td><td>Score</td></tr></thead><tbody></tbody></table>`;
+        leaderboard.innerHTML=`<h1>Leaderboard</h1><div id='leaderboard-table-container'><table id="leaderboard-table"><thead><tr><td>Rank</td><td>Jntu No</td><td>Username</td><td>Score</td><td>Last Activity</td></tr></thead><tbody></tbody></table></div>`;
         let rowsHTML = '';
         data.participants.forEach((item) => {
             rowsHTML += `
                 <tr>
                     <td>${item.rank}</td>
-                    <td><a href="../user/${item.username}">${item.username}</a></td>
+                    <td>${item.jntuno}</td>
+                    <td><a style='text-decoration:none;color:var(--text-secondary);' href="../user/${item.username}">${item.username}</a></td>
                     <td>${item.score}</td>
+                    <td>${(new Date(item.last_activity)).toLocaleTimeString()}</td>
                 </tr>
             `;
         });
@@ -95,9 +97,23 @@ function loadQuestion(questionNumber) {
         .then(data => {
             console.log(data);
             question.innerHTML = `
-                <h1>${data.current_question.title}</h1>
-                <pre>${data.current_question['description']}</pre>
+              <div id="problem-content" class="tab_content">
+                    <div class="question-flex">
+                        <h1 id="title">${data.current_question.title}</h1>
+                  <h2>Score :<i id="question-score">${data.current_question.score}</i></h2>
+                  </div>
+                <hr><br>
+                ${data.current_question['description']}
             `;
+            if(data.current_question.status){
+                document.getElementById('solved-status').innerHTML='solved';
+            }
+            else{
+                document.getElementById('solved-status').innerHTML='unsolved';
+            }
+            
+            document.getElementById('total-score').innerHTML=`${data.total_score}`;
+            document.getElementById('current-score').innerHTML=`${data.current_score}`;
             const lives=document.getElementById('lives');
             lives.innerHTML='';
             const submit=document.getElementById('submit-btn');
@@ -143,7 +159,10 @@ function loadQuestion(questionNumber) {
                 pagination.innerHTML = `<button class="prev" onclick=loadQuestion(${data.current_question.id-1   }) data-tooltip='previous'>◀</button>`+pagination.innerHTML; 
             }
             if(final_index!=current_index){
-            pagination.innerHTML+=`<button class="prev" onclick=loadQuestion(${data.current_question.id+1})data-tooltip='next'>▶</button>`;
+            pagination.innerHTML+=`<button class="prev" onclick='loadQuestion(${data.current_question.id+1})' data-tooltip='next'>▶</button>`;
+            }
+            else{
+                pagination.innerHTML+=` <button class='page active'style='float:right;right:10px;position:absolute;' onclick='endContest()'>End contest</button>`
             }
             // const testInput = document.getElementById('testInput');
             // testInput.value = data.current_question.sample_testcase.input;
@@ -177,6 +196,13 @@ function loadQuestion(questionNumber) {
             question.innerHTML = 'An error occurred while loading the question.';
             document.getElementById('mainframe-cover').innerHTML=`<h2 style='color:red'>
             ${error.message}</h2>. Wait until it is resolved or try refresh.`;
+            // document.getElementById('mainframe-cover').innerHTML=`
+            // <img id=heart' src='media/core_media/sad.gif' alt='no img' width='200px' height='200px'>
+            // `;
+         // Duration of one GIF cycle in milliseconds (Adjust this!)
+
+        
+           
             // document.getElementById('mainframe-cover').style.display='none';
         });
         
@@ -186,7 +212,8 @@ function loadQuestion(questionNumber) {
 function ContestEnded(){
    const maincover=document.createElement('div');
    maincover.classList.add('maincontent-cover');
-    maincover.innerHTML=`<h1>Contest Ended</h1><br><p>Try to refesh.</p>`;
+   maincover.style.display='flex';
+    maincover.innerHTML=`<h1>Contest Ended</h1><br><h2>Try to refesh.</h2>`;
     document.body.appendChild(maincover);
     document.getElementById('submit-btn').disabled=true;
 }
@@ -197,6 +224,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     loadQuestion(-1);
     initializeSubmitButton();
+   
 });
 
 
+
+function endContest(){
+    const cover = document.getElementById('cover-content');
+    cover.style.display = 'flex';
+    document.getElementById('end-contest').style.display='flex';
+}
+function confirmEndContest(){
+
+    
+}
+function cancelContent(button){
+    let parent=button.parentElement;
+    let grandParentDiv = parent.parentElement;
+    grandParentDiv.style.display='none';
+    const cover = document.getElementById('cover-content');
+    cover.style.display = 'none';
+
+}

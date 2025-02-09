@@ -2,10 +2,35 @@ function initializeSubmitButton() {
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.addEventListener('click', () => {
         submitBtn.disabled=true;
+        const lives=document.querySelectorAll('#lives span');
+        let reds=0;
+        let whites=0;
+        lives.forEach( heart=> {
+            const type=heart.getAttribute('heart-type');
+            if (type==='red'){
+                reds+=1;
+            }
+            else{
+                whites+=1;
+            }
+        });
+        if (reds==0){
+            const cover = document.getElementById('cover-content');
+            cover.style.display = 'flex';
+            const nolives=document.getElementById('failed-submission');
+            nolives.style.display='flex';
+            console.log('it is executing')
+            // Allow the browser to render the image before scheduling its removal
+            // console.log(performance.now())
+            
+            submitBtn.disabled = true;
+            return;
+        }
+
         const programCode = document.querySelector('#textarea1').value;
         const question_number = document.getElementById('question_id').dataset.questionId;
         const language=document.getElementById('language').value;
-        console.log('Submitting program:', programCode);
+//  console.log('Submitting program:', programCode);
         const c_code=document.getElementById('c-code').value;
         const pyhton_code=document.getElementById('python-code').value;
         const cpp_code=document.getElementById('cpp-code').value;
@@ -31,11 +56,64 @@ function initializeSubmitButton() {
             console.log('Submission result:', data);
             const testcase_containers=document.querySelectorAll('.testcase-container');
             testcase_containers.forEach(container => container.remove());
+            if (data.success===false){
+                const cover = document.getElementById('cover-content');
+                cover.style.display = 'flex';
+                const image=document.getElementById('failure-img');
+                image.style.display='block';
+                // Allow the browser to render the image before scheduling its removal
+                console.log(performance.now())
+                setTimeout(() => {
+                   
+                    // cover.innerHTML = '';
+                    image.style.display='none';
+                    cover.style.display = 'none';
+                    console.log(performance.now())
+                
+                }, 2000); 
+            }
+            // 
+            else {
+                const cover = document.getElementById('cover-content');
+                cover.style.display = 'flex';
+                const image=document.getElementById('success-img');
+                image.style.display='block';
+                if(data.score!==0){
+                    const currenet_Score=document.getElementById('current-score');
+                    currenet_Score.innerHTML=`${data.current_score}`;
+                    document.getElementById('solved-status').innerHTML='solved';
+                }
+                // Allow the browser to render the image before scheduling its removal
+                console.log(performance.now())
+                setTimeout(() => {
+                    // cover.innerHTML = '';
+                    image.style.display='none';
+                    cover.style.display = 'none';
+                    console.log(performance.now())
+                }, 2000); 
+
+            }
             testcase_handling(data);
         });
+        // console.log(performance.now())
         setTimeout(() => {
+            let reds=0;
+            let whites=0
+            lives.forEach( heart=> {
+                const type=heart.getAttribute('heart-type');
+                if (type==='red'){
+                    reds+=1;
+                }
+                else{
+                    whites+=1;
+                }
+            });
+            if (reds!==0){
             submitBtn.disabled = false;
-            console.log("Button re-enabled after 10 seconds.");
+            submitBtn.setAttribute('data-tooltip','you last all your lives for thiis question');
+
+            }
+            // console.log(performance.now())
         }, 10000);
         
     });
@@ -74,11 +152,22 @@ function testcase_handling(data){
     }
     data.sample_testcase.forEach(testcase => {
         if (testcase.success===true ){
-            final_result.innerHTML+=`<button style='background:lightblue;cursor:pointer;' onclick='view_testcase(${no})' >🔓${no}-correct answer --score:10 --View Details</button><br>`;
-            create_testcase_content(no,testcase.input,testcase.expected_output,testcase.actual_output);
+            final_result.innerHTML += `
+            <button id="testcase-btn-${no}" class="testcase-button" 
+                
+                onclick="view_testcase(${no})">
+                🔽 ${no} - Correct Answer 
+            </button>
+        `;            create_testcase_content(no,testcase.input,testcase.expected_output,testcase.actual_output);
         }
         else{
-            final_result.innerHTML+=`<button  style='background:lightblue;cursor:pointer; 'onclick='view_testcase(${no})''>🔓 ${no}-${testcase.error} --score:0 --View Details</button><br>`;
+            final_result.innerHTML += `
+            <button id="testcase-btn-${no}" class="testcase-button" 
+                onclick="view_testcase(${no})">
+                🔽 ${no} ${testcase.error} 
+            </button>
+        `;
+        // final_result.innerHTML+=`<button  style='background:var(--bg-tertiary);cursor:pointer;border:1px solid var(--border-color);padding:10px;border-radius:5px'onclick='view_testcase(${no})''>🔓 ${no}-${testcase.error} --score:0 --View Details</button><br>`;
             pass=false;
             if (testcase.error==='wrong_answer'){
                 create_testcase_content(no,testcase.input,testcase.expected_output,testcase.actual_output);
@@ -103,24 +192,37 @@ function testcase_handling(data){
     data.hidden_testcase.forEach(testcase => {
         
         if (testcase.success===true){
-            final_result.innerHTML+=`🔒  ${no}-correct answer --score:10<br>`;
+            final_result.innerHTML+=`<div class='testcase-button' >&#128274; ${no}-Correct answer</div>`;
         }
         else{
-            final_result.innerHTML+=`🔒  ${no}-${testcase.error} --score:0<br>`;
+            final_result.innerHTML+=`<div class='testcase-button' >&#128274; ${no}-${testcase.error}</div>`;
             pass=false;
         }
         no++;
     });
     if (pass===true){
+
         final_result_header.innerHTML=`Congratulations! You have passed all the testcases`;
     }
     else{
+
+ 
+
+        
+
+        
         final_result_header.innerHTML=`Sorry! You have failed some testcases`;
     }
 
 
 final_result.scrollIntoView({ behavior: "smooth",block:'end'});
 }
+
+
+
+
+
+
 
 
 function create_testcase_content(number,input,expected_output,actual_output){
@@ -155,16 +257,25 @@ final_result.innerHTML+=testcase_container.outerHTML;
 testcase_container.scrollIntoView({ behavior: "smooth",block:'end'});
 }
 
-function view_testcase(number){
-    testcase_container=document.getElementById(`testcase-${number}`);
-    is_none=testcase_container.style.display==='none';
-    document.querySelectorAll('.testcase-container').forEach(container => container.style.display='none');
-    if(is_none){
-        testcase_container.style.display='block';
+function view_testcase(number) {
+    let testcase_container = document.getElementById(`testcase-${number}`);
+    let button = document.getElementById(`testcase-btn-${number}`);
+    let is_none = testcase_container.style.display === 'none';
+
+    // Hide all other test cases
+    document.querySelectorAll('.testcase-container').forEach(container => container.style.display = 'none');
+    document.querySelectorAll('.testcase-button').forEach(btn => btn.innerHTML = btn.innerHTML.replace('🔼', '🔽'));
+
+    // Toggle the current test case
+    if (is_none) {
+        testcase_container.style.display = 'block';
+        button.innerHTML = button.innerHTML.replace('🔽', '🔼');
+    } else {
+        testcase_container.style.display = 'none';
+        button.innerHTML = button.innerHTML.replace('🔼', '🔽');
     }
-    else{
-        testcase_container.style.display='none';
-    }
-    var editor_container=document.getElementById('editors-container');
+
+    // Scroll to the bottom of the container
+    var editor_container = document.getElementById('editors-container');
     editor_container.scrollTop = editor_container.scrollHeight;
-}  
+}

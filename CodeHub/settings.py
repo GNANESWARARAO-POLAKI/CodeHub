@@ -36,6 +36,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'core',
     'codelife',
+    # 'compticode',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

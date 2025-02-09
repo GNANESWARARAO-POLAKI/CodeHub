@@ -31,7 +31,7 @@ class Contests(models.Model):
     contest_type=models.PositiveIntegerField()
     venue=models.CharField(max_length=30)
     poster=models.ImageField(null=True,upload_to='contest_posters/')
-    winner=models.CharField(max_length=40,null=True,blank=True)
+    winners = models.ManyToManyField(User, related_name='contest_winners', blank=True)
     runner=models.CharField(max_length=40,null=True,blank=True)
     # duration=models.PositiveIntegerField(default=60)
     # is_draft=models.BooleanField(default=False)
@@ -54,6 +54,7 @@ class Contests(models.Model):
             return "Ongoing"
         else:
             return "Past"
+            
 
     def __str__(self):
         return self.title

@@ -33,7 +33,9 @@
                     <p>Reg.No. : {{user.jntuno}}</p>
                     <p>Branch : {{user.branch}}</p></div>
             </div>
+            {% if user == request.user %}
             <a class='center-link' href="/edit_user">Edit</a>
+            {% endif %}
         </div>
     </div>
 

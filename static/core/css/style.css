@@ -1,6 +1,5 @@
 
 :root[data-theme="light"] {
-
     --bg-primary: #ffffff;
     --bg-secondary: #f5f5f5;
     --bg-tertiary: #e5e5e5;
@@ -20,7 +19,8 @@
     --bg-primary: #1a1b26;
     --bg-secondary: #1f2335;
     --bg-tertiary: #24283b;
-    --text-primary: #a9b1d6;
+    /* --text-primary: #a9b1d6; */
+    --text-primary: #fefefe; 
     --text-secondary: #9699a3;
     --border-color: #2f3549;
     --accent-color: #73daca;
@@ -280,14 +280,13 @@ white-space: nowrap;
     color: var(--accent-text);
 }
 
-.live-contests{
+.live-contests,.winners{
     margin: 10px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     /* justify-content: space-between; */
     gap: 10px;
-    
 }
 
 
@@ -432,18 +431,19 @@ h3{
 
 /* registration page  */
 
-#image-container{
+#image-container ,.pop-up{
     top:0;
     left: 0;
     height: 100vh;
     width:100vw;
     background-color: var(--bg-primary);
-    position: absolute;
+    position: fixed;
     display: none;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     gap: 10px;
+    z-index: 100;
 }
 
 #imageContainer {
@@ -456,6 +456,26 @@ h3{
     overflow: hidden;
     position: relative;
     background-color: var(--bg-primary);
+   
+}
+.pop-up-container{
+    width:60%;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+}
+.pop-header{
+    padding:10px 0px 0px 1  0px;
+    display: flex;
+    height: 60px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    border-bottom: 1px solid var(--card-border);
 }
 
 canvas {

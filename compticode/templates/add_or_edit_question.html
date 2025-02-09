@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block body %}
+<h2>{% if is_edit %}Edit Question{% else %}Add Question{% endif %}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    <label>Title:</label>
+    <input type="text" name="title" value="{{ question.title|default:'' }}" required><br>
+
+    <label>Description:</label>
+    <textarea name="description" required>{{ question.description|default:'' }}</textarea><br>
+
+    <label>Score:</label>
+    <input type="number" name="score" value="{{ question.score|default:'' }}" required><br>
+
+    <label>Time Limit (in sec):</label>
+    <input type="number" step="0.1" name="time_limit" value="{{ question.timelimit|default:'' }}" required><br>
+
+    <h3>Testcases</h3>
+    <div id="testcase-container">
+        {% for testcase in testcases %}
+        <div class="testcase" id="testcase_{{ forloop.counter0 }}">
+            <label>Input:</label>
+            <textarea name="input_{{ forloop.counter0 }}">{{ testcase.input_data }}</textarea>
+            <label>Output:</label>
+            <textarea name="output_{{ forloop.counter0 }}">{{ testcase.expected_output }}</textarea>
+            <label>Hidden:</label>
+<input type="checkbox" name="hidden_{{ forloop.counter0 }}">
+
+            <button type="button" onclick="removeTestcase({{ forloop.counter0 }})">Delete</button>
+        </div>
+        {% empty %}
+        <div class="testcase" id="testcase_0">
+            <label>Input:</label>
+            <textarea name="input_0"></textarea>
+            <label>Output:</label>
+            <textarea name="output_0"></textarea>
+            <input  type='checkbox' name="hidden_0" value="true">
+            <button type="button" onclick="removeTestcase(0)">Delete</button>
+        </div>
+        {% endfor %}
+    </div>
+    <input type="hidden" id="testcases_count" name="testcases_count" value="{{ testcases|length|default:1 }}">
+
+    <button type="button" onclick="addTestcase()">Add Testcase</button>
+    <button type="submit">Submit</button>
+</form>
+
+<script>
+    function addTestcase() {
+        let count = document.getElementById('testcase-container').children.length;
+        let container = document.getElementById('testcase-container');
+
+        let div = document.createElement('div');
+        div.classList.add('testcase');
+        div.id = `testcase_${count}`;
+        div.innerHTML = `
+            <label>Input:</label>
+            <textarea name="input_${count}"></textarea>
+            <label>Output:</label>
+            <textarea name="output_${count}"></textarea>
+            <input  type='checkbox' name="hidden_${count}" value="true">
+            <button type="button" onclick="removeTestcase(${count})">Delete</button>
+        `;
+        container.appendChild(div);
+        document.getElementById('testcases_count').value = count + 1;
+    }
+
+    function removeTestcase(index) {
+        let testcase = document.getElementById(`testcase_${index}`);
+        if (testcase) {
+            testcase.style.display = 'none';
+            let hiddenInput = testcase.querySelector(`input[name="hidden_${index}"]`);
+            if (hiddenInput) {
+                hiddenInput.value = "false";  // Mark the test case as deleted
+            }
+        }
+    }
+</script>
+{% endblock %}

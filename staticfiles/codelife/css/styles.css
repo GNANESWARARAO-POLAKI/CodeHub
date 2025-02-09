@@ -1,5 +1,6 @@
 /* Theme variables */
-:root[data-theme="light"] ,:root{
+:root[data-theme="light"],
+:root {
     --bg-primary: #ffffff;
     --bg-secondary: #f5f5f5;
     --bg-tertiary: #e5e5e5;
@@ -11,8 +12,8 @@
     --header-bg: #ffffff;
     --editor-bg: #f8f9fa;
     --editor-text: #1a1b26;
-    --popup-background:rgba(48, 48, 48, 0.649);
-    
+    --popup-background: rgba(48, 48, 48, 0.649);
+
 }
 
 :root[data-theme="dark"] {
@@ -20,6 +21,7 @@
     --bg-secondary: #1f2335;
     --bg-tertiary: #24283b;
     --text-primary: #a9b1d6;
+    /* --text-primary: #fefefe;  */
     --text-secondary: #9699a3;
     --border-color: #2f3549;
     --accent-color: #73daca;
@@ -27,7 +29,7 @@
     --header-bg: #1f2335;
     --editor-bg: #1f2335;
     --editor-text: #a9b1d6;
-    --popup-background:rgba(60, 42, 104, 0.722);
+    --popup-background: rgba(60, 42, 104, 0.722);
 }
 
 
@@ -92,8 +94,8 @@ main {
 
 .left-panel {
     background-color: var(--bg-secondary);
-    border: 0.2px var(--border-color) solid ;
-    border-radius: 5px ;
+    border: 0.2px var(--border-color) solid;
+    border-radius: 5px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -126,14 +128,30 @@ nav {
     overflow-y: auto;
     overflow-x: hidden;
 }
+#leaderboard-content{
+    flex: 1;
+    padding: 0.75rem;
+    overflow-y: scroll;
+    /* overflow-x:overlay; */
+}
+
 #problem-content pre {
-    white-space: pre-wrap; /* Allow wrapping inside <pre> */
-    word-wrap: break-word; /* Break long words if needed */
+    white-space: pre-wrap;
+    /* Allow wrapping inside <pre> */
+    word-wrap: break-word;
+    /* Break long words if needed */
+}
+
+.question-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
 h1 {
     color: #7aa2f7;
-    margin-bottom: 0.75rem;
+    /* margin-bottom: 0.75rem; */
     font-size: 1.2rem;
 }
 
@@ -143,7 +161,8 @@ h2 {
     font-size: 1rem;
 }
 
-p, ul {
+p,
+ul {
     margin-bottom: 0.75rem;
     line-height: 1.4;
     font-size: 0.9rem;
@@ -152,6 +171,8 @@ p, ul {
 ul {
     padding-left: 1.5rem;
 }
+
+
 
 .example {
     background-color: var(--bg-tertiary);
@@ -163,7 +184,8 @@ ul {
 .right-panel {
     display: flex;
     flex-direction: column;
-    height: 100%; /* Full height of the container */
+    height: 100%;
+    /* Full height of the container */
     gap: 5px;
     /* transition:all 2s; */
 }
@@ -171,50 +193,77 @@ ul {
 .editors-container {
     flex: 1;
     gap: 5px;
-    overflow-y: auto; /* Prevent external scrolling here */
-    border-radius:5px;
+    overflow-y: auto;
+    /* Prevent external scrolling here */
+    border-radius: 5px;
 }
 
-.editors-container::-webkit-scrollbar,*::-webkit-scrollbar {
+.editors-container::-webkit-scrollbar,
+*::-webkit-scrollbar {
     display: none;
-  }
+}
 
 .program-editor {
-    flex: 1; /* Fills available space */
+    flex: 1;
+    /* Fills available space */
     display: flex;
     flex-direction: column;
-    overflow: hidden; 
+    overflow: hidden;
     height: 100%;
-    border-radius:5px;
+    border-radius: 5px;
     /* Prevents content overflow */
 }
 
 .test-editor {
-    flex-shrink: 0; /* Prevents shrinking */
-    max-height: 300px; /* Optional: Define a max height for scrolling */
-    overflow-y: auto; /* Allows scrolling within the test editor */
+    flex-shrink: 0;
+    /* Prevents shrinking */
+    max-height: 300px;
+    /* Optional: Define a max height for scrolling */
+    overflow-y: auto;
+    /* Allows scrolling within the test editor */
     padding-top: 10px;
     /* border-radius: 5px;display: none; */
 }
 
 
+  
 
-.hidden-code{
+
+
+.hidden-code {
     display: none;
     height: 0px;
     width: 0px;
     font-size: 0.0vh;
 }
 
-.testcase-container{
+.testcase-container {
     display: none;
 }
-.text-content{
+
+.testcase-button {
+    font-size: 0.8rem; 
+    background: var(--bg-tertiary);
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 5px; 
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-primary);
+    /* margin:10px 0px;       */
+}
+
+.text-content {
     background-color: var(--bg-secondary);
     padding: 10px;
     max-height: 200px;
     overflow-y: auto;
-    border:1px var(--border-color) solid;
+    border: 1px var(--border-color) solid;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .editor-header {
@@ -240,7 +289,7 @@ select {
     border-radius: 4px;
     font-size: 0.9rem;
     cursor: pointer;
-    
+
 }
 
 .score {
@@ -278,13 +327,13 @@ select {
 
 } */
 
-.input-field{
+.input-field {
     width: 100%;
     flex: 1;
     background-color: var(--bg-secondary);
     color: var(--text-primary);
     overflow-y: auto;
-    position:relative;
+    position: relative;
 }
 
 
@@ -300,9 +349,10 @@ select {
     font-size: 0.9rem;
     margin-top: 0.5rem;
 }
-.submit-btn:disabled{
-cursor: no-cursor;
-background-color: #1f2335;
+
+.submit-btn:disabled {
+    cursor: no-cursor;
+    background-color: #1f2335;
 }
 
 footer {
@@ -318,7 +368,9 @@ footer {
     gap: 0.4rem;
 }
 
-.page, .prev, .next {
+.page,
+.prev,
+.next,.button {
     padding: 0.25rem 0.5rem;
     background-color: var(--bg-tertiary);
     border: 1px solid var(--border-color);
@@ -328,12 +380,16 @@ footer {
     font-size: 0.9rem;
 }
 
-.page.active {
+.page.active,.button {
     background-color: var(--accent-color);
     color: var(--bg-primary);
 }
-#toggle_button{
-    background-color:var(--bg-tertiary) ;
+.button{
+    margin: 10px;
+}
+
+#toggle_button {
+    background-color: var(--bg-tertiary);
     border: none;
     cursor: pointer;
 }
@@ -346,13 +402,17 @@ footer {
 
 
 
-.monaco-editor-background ,.margin  {
-    background-color: var(--bg-secondary) !important;  /* Custom background color */
+.monaco-editor-background,
+.margin {
+    background-color: var(--bg-secondary) !important;
+    /* Custom background color */
 }
 
 #editor {
-    width: 100%;  /* Fill the width of the parent container */
-   height: 100%; /* Fill the height of the parent container */
+    width: 100%;
+    /* Fill the width of the parent container */
+    height: 100%;
+    /* Fill the height of the parent container */
 }
 
 
@@ -363,8 +423,9 @@ footer {
 
 
 
-.contest,.question_id{
-display: none;
+.contest,
+.question_id {
+    display: none;
 }
 
 
@@ -383,7 +444,7 @@ display: none;
 #preCode code {
     padding: 15px;
     height: 100%;
-    width:100%;
+    width: 100%;
     /* font-family: "Courier New", monospace; */
     font-weight: 400;
     font-size: 12pt;
@@ -391,10 +452,12 @@ display: none;
     overflow-y: scroll;
     overflow-x: auto;
 }
+
 .hljs {
-background: var(--bg-secondary);
-/* color: #000; */
+    background: var(--bg-secondary);
+    /* color: #000; */
 }
+
 textarea {
     /* font-family: "Courier New", monospace; */
     font-weight: 400;
@@ -410,48 +473,82 @@ textarea {
     overflow-x: auto;
     overflow-y: scroll;
     white-space: nowrap;
-    background-color: rgba(0,0,0,0);
-    color: rgba(0,0,0,0);
-    caret-color:var(--text-primary);
+    background-color: rgba(0, 0, 0, 0);
+    color: rgba(0, 0, 0, 0);
+    caret-color: var(--text-primary);
 }
 
-#mainframe-cover,.maincontent-cover{
+#mainframe-cover,
+.maincontent-cover {
     position: fixed;
-    top:0;
+    top: 0;
     left: 0;
     height: 100vh;
     width: 100vw;
-    background-color:var(--popup-background);
-    display: flex;
+    background-color: var(--popup-background);
+    /* display:none; */
+
     justify-content: center;
     align-items: center;
-    z-index:99;
-    flex-direction: column
-    /* display: none; */
+    z-index: 99;
+    flex-direction: column;
+display: flex;
 }
+.maincontent-cover{
+    display: none;
+}
+
+#failure-img {
+width:200px;
+height: 200px;
+display: none;
+}
+#success-img{
+    width:100px;
+    height: 100px;
+    display: none;
+}
+
+#end-contest,#failed-submission {
+    width:30%;
+    height: 50%;
+    background-color:var(--bg-secondary);
+    border-radius: 50px;
+    display: none;
+    flex-direction: column;
+    padding: 50px;
+    color: var(--text-primary);
+    justify-content:center;
+    align-items: center;
+    gap: 10%;
+}
+
 
 #simple-loading {
     font-size: 50px;
-    background-image: linear-gradient(to right,black,var(--accent-color));  
-    
+    background-image: linear-gradient(to right, black, var(--accent-color));
+
     -webkit-text-fill-color: transparent;
     font-weight: 800;
     display: inline-block;
-    background-clip:text;
+    background-clip: text;
 }
 
 #simple-loading span {
     display: inline-block;
-    background-image: linear-gradient(to right,black,var(--accent-color));  
+    background-image: linear-gradient(to right, black, var(--accent-color));
     background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: alternateMove 1s infinite ease-in-out;
 }
 
 @keyframes alternateMove {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-15px);
     }
@@ -465,14 +562,21 @@ textarea {
     animation-delay: 0.1s;
 }
 
-#leaderboard-table{
-    width:100%;
+#leaderboard-table {
+    width: 100%;
     /* border: 1px solid var(--border-color); */
-    overflow-x: scroll;
+    overflow-x:scroll;
+    overflow-y: scroll;
     border-collapse: collapse;
     width: 90%;
     padding: 10px;
     border-radius: 10px;
+}
+#leaderboard-table-container{
+    overflow-x: auto;
+    width: 100%;
+
+    overflow-x: auto;
 }
 
 td {
@@ -485,7 +589,8 @@ thead {
     background-color: var(--bg-secondary);
     color: var(--text-primary);
 }
-thead td{
+
+thead td {
     font-weight: bold;
 }
 
@@ -495,10 +600,10 @@ thead td{
 [data-tooltip] {
     position: relative;
     cursor: pointer;
-  }
-  
-  /* Tooltip Text */
-  [data-tooltip]::after {
+}
+
+/* Tooltip Text */
+[data-tooltip]::after {
     content: attr(data-tooltip);
     visibility: hidden;
     opacity: 0;
@@ -511,19 +616,20 @@ thead td{
     white-space: nowrap;
     z-index: 10;
     transition: opacity 0.3s, visibility 0.3s ease;
-  }
-  
-  /* Default Position - Tooltip appears above the element */
-  [data-tooltip]::after {
+}
+
+/* Default Position - Tooltip appears above the element */
+[data-tooltip]::after {
     /* bottom: 100%; Place tooltip above the element */
-    left:10%;    /* Center the tooltip horizontally */
+    left: 10%;
+    /* Center the tooltip horizontally */
     transform: translateX(-100%);
-    margin-bottom: 5px; /* Add space between the element and tooltip */
-  }
-  
-  /* Hover Effect */
-  [data-tooltip]:hover::after {
+    margin-bottom: 5px;
+    /* Add space between the element and tooltip */
+}
+
+/* Hover Effect */
+[data-tooltip]:hover::after {
     visibility: visible;
     opacity: 0.8;
-  }
-  
+}

@@ -25,9 +25,9 @@ def register(request,contest_id):
             messages.warning(request, "You are already registered for this contest.")
         else:
             Participant.objects.create(user=user, contest=contest)
-
             messages.success(request, "Registration successful!")
-        return redirect('codelife:contest_details', contest_id=contest.id)
+        return JsonResponse({'message': 'Registration successful!','success':True})
+
     return redirect('codelife:contest_details', contest_id=contest.id)
 
 
@@ -54,103 +54,157 @@ def codelife_contest(request,contest_id):
     # print(localtime(now()),'-',contest.end_date,'=',current_time)
     return render(request,'contest.html',{'contest':contest,'current_time':current_time})
 
-@login_required
-def add_question(request, contest_id):
-    contest = get_object_or_404(Contests, id=contest_id)
+# @login_required
+# def add_question(request, contest_id):
+#     contest = get_object_or_404(Contests, id=contest_id)
 
-    if request.method == 'POST':
-        form = AddQuestionsForm(request.POST)
-        formset = TestcaseFormSet(request.POST)
+#     if request.method == 'POST':
+#         form = AddQuestionsForm(request.POST)
+#         formset = TestcaseFormSet(request.POST)
 
-        if form.is_valid() and formset.is_valid():
-            # Create a new question
-            question = form.save(commit=False)
-            question.contest = contest
-            question.save()
+#         if form.is_valid() and formset.is_valid():
+#             # Create a new question
+#             question = form.save(commit=False)
+#             question.contest = contest
+#             question.save()
 
-            # Save testcases
-            for form in formset:
-                testcase = form.save(commit=False)
-                testcase.question = question
-                testcase.save()
+#             # Save testcases
+#             for form in formset:
+#                 testcase = form.save(commit=False)
+#                 testcase.question = question
+#                 testcase.save()
 
-            return redirect('codelife:contest_details', contest_id=contest.id)
-        else:
-            # If form is invalid, return with errors
-            return render(request, 'add_question.html', {
-                'form': form,
-                'formset': formset,
-                'contest': contest,
-                'is_edit': False
-            })
-    else:
-        form = AddQuestionsForm()
-        formset = TestcaseFormSet(queryset=Testcases.objects.none())  # No testcases initially
+#             return redirect('codelife:contest_details', contest_id=contest.id)
+#         else:
+#             # If form is invalid, return with errors
+#             return render(request, 'add_question.html', {
+#                 'form': form,
+#                 'formset': formset,
+#                 'contest': contest,
+#                 'is_edit': False
+#             })
+#     else:
+#         form = AddQuestionsForm()
+#         formset = TestcaseFormSet(queryset=Testcases.objects.none())  # No testcases initially
 
-    return render(request, 'add_question.html', {
-        'form': form,
-        'formset': formset,
-        'contest': contest,
-        'is_edit': False  # Flag to indicate this is for adding
-    })
+#     return render(request, 'add_question.html', {
+#         'form': form,
+#         'formset': formset,
+#         'contest': contest,
+#         'is_edit': False  # Flag to indicate this is for adding
+#     })
 
+
+
+# # @login_required
+# # def edit_question(request,question_id):
+# #     question=get_object_or_404(Questions,id=question_id)
+# #     if request.method == 'POST':
+# #         form = AddQuestionsForm(request.POST, instance=question)
+# #         if form.is_valid():
+# #             form.save()  
+# #             return redirect('codelife:contest_details', contest_id=question.contest.id)
+# #     else:
+# #         form = AddQuestionsForm(instance=question)
+# #     return render(request, 'edit_question.html', {'form': form})
 
 
 # @login_required
-# def edit_question(request,question_id):
-#     question=get_object_or_404(Questions,id=question_id)
+# def edit_question(request, question_id):
+#     question = get_object_or_404(Questions, id=question_id)
+#     contest = question.contest
+
 #     if request.method == 'POST':
 #         form = AddQuestionsForm(request.POST, instance=question)
-#         if form.is_valid():
-#             form.save()  
-#             return redirect('codelife:contest_details', contest_id=question.contest.id)
+#         formset = TestcaseFormSet(request.POST, queryset=question.testcases.all())
+
+#         if form.is_valid() and formset.is_valid():
+#             # Save the question
+#             question = form.save()
+
+#             # Save the testcases
+#             testcases = formset.save(commit=False)
+#             for testcase in testcases:
+#                 testcase.question = question
+#                 testcase.save()
+
+#             # Handle deleted testcases
+#             for deleted in formset.deleted_objects:
+#                 deleted.delete()
+
+#             return redirect('codelife:contest_details', contest_id=contest.id)
+
+#         else:
+#             return render(request, 'add_question.html', {
+#                 'form': form,
+#                 'formset': formset,
+#                 'contest': contest,
+#                 'is_edit': True,
+#             })
 #     else:
 #         form = AddQuestionsForm(instance=question)
-#     return render(request, 'edit_question.html', {'form': form})
+#         formset = TestcaseFormSet(queryset=question.testcases.all())
 
+#     return render(request, 'add_question.html', {
+#         'form': form,
+#         'formset': formset,
+#         'contest': contest,
+#         'is_edit': True,
+#     })
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Contests, Questions, Testcases
 
 @login_required
-def edit_question(request, question_id):
-    question = get_object_or_404(Questions, id=question_id)
-    contest = question.contest
+def add_or_edit_question(request, contest_id=None, question_id=None):
+    if question_id:
+        question = get_object_or_404(Questions, id=question_id)
+        contest = question.contest
+        is_edit = True
+    else:
+        contest = get_object_or_404(Contests, id=contest_id)
+        question = None
+        is_edit = False
 
     if request.method == 'POST':
-        form = AddQuestionsForm(request.POST, instance=question)
-        formset = TestcaseFormSet(request.POST, queryset=question.testcases.all())
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        score = request.POST.get('score')
+        time_limit = request.POST.get('time_limit')
 
-        if form.is_valid() and formset.is_valid():
-            # Save the question
-            question = form.save()
+        if is_edit:
+            question.title = title
+            question.description = description
+            question.score = score
+            question.time_limit = time_limit
+            question.save()
+        else:
+            question = Questions.objects.create(
+                title=title,
+                description=description,
+                score=score,
+                time_limit=time_limit,
+                contest=contest
+            )
 
-            # Save the testcases
-            testcases = formset.save(commit=False)
-            for testcase in testcases:
-                testcase.question = question
+        # Handling test cases
+        testcases_count = int(request.POST.get('testcases_count', 0))
+        
+        for i in range(testcases_count):
+            input_data = request.POST.get(f'input_{i}')
+            output_data = request.POST.get(f'output_{i}')
+            hidden = request.POST.get(f'hidden_{i}') == 'on'  # Convert string to boolean
+
+            if input_data and output_data:
+                testcase, created = Testcases.objects.get_or_create(question=question, input_data=input_data)
+                testcase.expected_output = output_data
+                testcase.hidden = hidden
                 testcase.save()
 
-            # Handle deleted testcases
-            for deleted in formset.deleted_objects:
-                deleted.delete()
+        return redirect('codelife:contest_details', contest_id=contest.id)
 
-            return redirect('codelife:contest_details', contest_id=contest.id)
-
-        else:
-            return render(request, 'add_question.html', {
-                'form': form,
-                'formset': formset,
-                'contest': contest,
-                'is_edit': True,
-            })
-    else:
-        form = AddQuestionsForm(instance=question)
-        formset = TestcaseFormSet(queryset=question.testcases.all())
-
-    return render(request, 'add_question.html', {
-        'form': form,
-        'formset': formset,
-        'contest': contest,
-        'is_edit': True,
-    })
+    testcases = Testcases.objects.filter(question=question) if is_edit else []
+    return render(request, 'add_or_edit_question.html', {'contest': contest, 'question': question, 'testcases': testcases, 'is_edit': is_edit})
 
 
 def leaderboard(request, contest_id):
@@ -164,7 +218,8 @@ def leaderboard(request, contest_id):
             'rank': index + 1,
             'username': participant.user.username,
             'score': participant.score,
-            'joined_at': participant.joined_at,
+            'jntuno': participant.user.jntuno,
+            'last_activity': participant.last_activity,
         }
         for index,participant in enumerate(participants)
     ]
@@ -178,33 +233,35 @@ def leaderboard(request, contest_id):
 def questions(request, contest_id):
     user = get_object_or_404(User, id=request.user.id)
     contest = get_object_or_404(Contests, id=contest_id)
-    questions = Questions.objects.filter(contest=contest)
+    questions = Questions.objects.filter(contest=contest).order_by('id')
     participant=get_object_or_404(Participant,user=user,contest=contest)
-    if not questions.first():
-        return JsonResponse({'error':'questions not availble in this contest.'},status=400)
+    
+    if not questions.exists():
+        return JsonResponse({'error': 'Questions not available in this contest.'}, status=400)
     first_question = questions.first().id
     question_id = request.GET.get('question_id',first_question)
     if not question_id:
         return JsonResponse({'error': 'question_id is required'}, status=400)
     current_question = get_object_or_404(Questions, id=question_id, contest=contest)
     status = is_solved(current_question, user)
-    lost_submissions=0 
+    lost_submissions=0
     testcase_data=False
-    if Submission.objects.filter(participant__user=user,question=current_question).exists():
-        lost_submissions = Submission.objects.filter(participant__user=user,question=current_question).count()-Submission.objects.filter(participant__user=user,question=current_question,output=1,).count()
-        testcase_data=Submission.objects.filter(participant__user=user,question=current_question).latest('created_at').json_data
+    submissions = Submission.objects.filter(participant__user=user, question=current_question)
+    lost_submissions = submissions.count() - submissions.filter(output=1).count() if submissions.exists() else 0
+    testcase_data = submissions.latest('created_at').json_data if submissions.exists() else False
         # print(testcase_data)
     # sample_testcase=Testcases.objects.filter(question=current_question).first()
-    solved_status = [
-        {'question_id': q.id, 'solved': is_solved(q, user)}
-        for q in questions
-    ]
-
+    current_score=0
+    solved_status=[]
+    for q in questions:
+        solved = is_solved(q, user)
+        solved_status.append({'question_id': q.id, 'solved': solved})
+        if solved:
+            current_score += q.score
+            
     # temp_codes=get_object_or_404(Tempcode,participant__user=user,question=current_question)
-    if Tempcode.objects.filter(participant__user=user,question=current_question).exists():
-        temp_codes=get_object_or_404(Tempcode,participant__user=user,question=current_question)
-    else:
-        temp_codes=Tempcode.objects.create(participant=participant,question=current_question)
+    temp_codes, created = Tempcode.objects.get_or_create(participant=participant, question=current_question)
+
     response = {
         'current_question': current_question.serialize() | {
             'lost_submissions': lost_submissions, 
@@ -216,10 +273,13 @@ def questions(request, contest_id):
             'title': contest.title,
         },
         'total_questions': questions.count(),
+        'total_score' :sum(questions.values_list('score', flat=True)) or 0,
+        'current_score':participant.score,
         'solved_status': solved_status,
         'testcase_data':testcase_data,
         'scripts':temp_codes.serialize()
     }
+    # print(response) 
     return JsonResponse(response)
 
 
@@ -228,6 +288,7 @@ def submit(request,  question_id):
     user = get_object_or_404(User, id=request.user.id)
     question = get_object_or_404(Questions, id=question_id)
     participant=get_object_or_404(Participant,user=user,contest=question.contest)
+    current_score=participant.score
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     passed_data=json.loads(request.body)
@@ -243,6 +304,7 @@ def submit(request,  question_id):
         'testcases_count':testcases_count,
         'code':code,
         'language':language,
+        'timelimit':question.timelimit,
     }
     try:
         response = requests.post(
@@ -253,7 +315,7 @@ def submit(request,  question_id):
 
         # print(data)
         lang=['','python','c','c++','java']
-        errors=['','runtime_error','compliation_error','wrong_answer']
+        errors=['','runtime_error','compliation_error','wrong_answer','time_limit_exceeded']
         sample=data['sample_testcase']
         hidden=data['hidden_testcase']
         success=True
@@ -288,7 +350,8 @@ def submit(request,  question_id):
     except requests.exceptions.RequestException as err:
         return JsonResponse({'error': f"An error occurred: {err}"},status=505)
     # Return the output of the code execution
-    return JsonResponse(data|{'score':score,'success':success})
+    print(data)
+    return JsonResponse(data|{'score':score,'success':success,'current_score':current_score})
 
 @csrf_exempt
 @login_required
@@ -318,3 +381,14 @@ def is_solved(question,user):
     
 
 
+
+
+def ended_contests(request,contest_id):
+    contest = get_object_or_404(Contests,id=contest_id)
+    if contest.status=='past':
+        if contest.winners.exists():
+            winners=contest.winners.all()
+            return render(request, 'contest_results.html', {'contest': contest, 'winners': winners})      
+        else:
+            
+    return render(request, 'contest_results.html', {'contest': contest})

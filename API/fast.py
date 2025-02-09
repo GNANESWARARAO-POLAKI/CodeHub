@@ -21,15 +21,17 @@ app.add_middleware(
 class TestCase(BaseModel):
     input_data: str
     expected_output: str
+    # timelimit:float
     hidden: bool
 
 class CodeRequest(BaseModel):
     language: str
     code: str
+    timelimit:int # [python,c,cpp,java]
     testcases: list[TestCase]
 
 # Function to execute the code based on language and test case input
-def run_code(language: str, code: str, testcases: list[TestCase]):
+def run_code(language: str, code: str, testcases: list[TestCase],timelimit:int):
     try:
         # Create a temporary directory to store code and output files
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -44,21 +46,23 @@ def run_code(language: str, code: str, testcases: list[TestCase]):
                 output_name = os.path.join(temp_dir, "program.out")
                 compile_cmd = ["gcc", file_name, "-o", output_name]
                 run_cmd = [output_name]
-
+                # timelimit=timelimits[1]
             elif language == "cpp":
                 file_name = os.path.join(temp_dir, "program.cpp")
                 output_name = os.path.join(temp_dir, "program.out")
                 compile_cmd = ["g++", file_name, "-o", output_name]
                 run_cmd = [output_name]
-
+                # timelimit=timelimits[2]
             elif language == "java":
                 file_name = os.path.join(temp_dir, "Main.java")
                 output_name = os.path.join(temp_dir, "Main")
                 compile_cmd = ["javac", file_name]
                 run_cmd = ["java", "-cp", temp_dir, "Main"]
+                # timelimit=timelimits[3]
             elif language == 'python':
                 file_name = os.path.join(temp_dir, "example.py")
                 run_cmd=['python',file_name]
+                # timelimit=timelimits[0]
             else:
                 raise HTTPException(status_code=400, detail="Unsupported language")
 
@@ -69,6 +73,7 @@ def run_code(language: str, code: str, testcases: list[TestCase]):
             
             # Compile the code
             if language!='python':
+                
                 compile_process = subprocess.run(compile_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 if compile_process.returncode != 0:
                     # Capture the compilation error and return as a 400 error
@@ -79,13 +84,22 @@ def run_code(language: str, code: str, testcases: list[TestCase]):
             # Run the compiled code for each test case
             hidden = []
             sample=[]
-            for i,testcase in enumerate(testcases):
-                run_process = subprocess.run(
+            print(testcases)
+            for i,testcase in enumerate(testcases): 
+                try:
+                    run_process = subprocess.run(
                     run_cmd,
-                    input=testcase.input_data.encode(),  # Pass input to the program
+                    input=testcase.input_data.encode(),  
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                )
+                    timeout=timelimit,
+                    )
+                except subprocess.TimeoutExpired:
+                    if testcase.hidden==False:
+                        sample.append({'success':False,'error':'time_limit_exceeded','error_message':'Time Limit Exceeded'})
+                    else:
+                        hidden.append({'success':False, "error":'time_limit_exceeded'})
+                    continue
                 if run_process.returncode != 0:
                     # Capture runtime errors for this test case
                     error_message = run_process.stderr.decode()
@@ -127,5 +141,6 @@ def run_code(language: str, code: str, testcases: list[TestCase]):
 # Endpoint to run the code
 @app.post("/run/")
 async def run_program(code_request: CodeRequest):
-    sample_testcase,hidden_testcase = run_code(code_request.language, code_request.code, code_request.testcases)
+    sample_testcase,hidden_testcase = run_code(code_request.language, code_request.code, code_request.testcases,code_request.timelimit)
+    # print(sample_testcase)
     return {'sample_testcase':sample_testcase,"hidden_testcase": hidden_testcase}
