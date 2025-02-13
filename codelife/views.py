@@ -161,6 +161,7 @@ def add_or_edit_question(request, contest_id=None, question_id=None):
         question = get_object_or_404(Questions, id=question_id)
         contest = question.contest
         is_edit = True
+
     else:
         contest = get_object_or_404(Contests, id=contest_id)
         question = None
@@ -170,20 +171,22 @@ def add_or_edit_question(request, contest_id=None, question_id=None):
         title = request.POST.get('title')
         description = request.POST.get('description')
         score = request.POST.get('score')
-        time_limit = request.POST.get('time_limit')
-
+        timelimit = request.POST.get('timelimit')
+        lives=request.POST.get('lives')
         if is_edit:
             question.title = title
             question.description = description
             question.score = score
-            question.time_limit = time_limit
+            question.timelimit = timelimit
+            question.lives=lives
             question.save()
         else:
             question = Questions.objects.create(
                 title=title,
                 description=description,
                 score=score,
-                time_limit=time_limit,
+                timelimit=timelimit,
+                lives=lives,
                 contest=contest
             )
 
@@ -385,10 +388,17 @@ def is_solved(question,user):
 
 def ended_contests(request,contest_id):
     contest = get_object_or_404(Contests,id=contest_id)
-    if contest.status=='past':
+    if contest.status=='Past':
         if contest.winners.exists():
-            winners=contest.winners.all()
+            winner_users=list(contest.winners.all())
+            winners = Participant.objects.filter(user=winner_users[0], contest=contest)
+            for winner in winner_users[1:]:
+                winners|=Participant.objects.filter(user=winner_users[1], contest=contest)
             return render(request, 'contest_results.html', {'contest': contest, 'winners': winners})      
         else:
-            
+            participants=Participant.objects.filter(contest=contest).order_by('-score', 'last_activity')
+            contest.winners.add(participants[0].user.id)
+            contest.winners.add(participants[1].user.id)
+            # print(participants[0].user.username)
+            contest.save()
     return render(request, 'contest_results.html', {'contest': contest})

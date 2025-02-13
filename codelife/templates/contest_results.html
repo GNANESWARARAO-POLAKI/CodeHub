@@ -16,7 +16,7 @@
     </div>
 <hr>
 <div class="winners">
-    {% if contest.status == 'past' %}
+    {% if contest.status == 'Past' %}
     {% for winner in winners %}
     <div class="winner-card">
         <div class="winner-name">{{winner.user.username}}</div>
@@ -27,9 +27,52 @@
     <div class="winner-card">
         <div class="winner-name">winners not anounced at</div>
     </div>
-    {% endif % }
+    {% endif %}    
 </div>
 </div>
+<br>
 
+<div id="leaderboard">
+{{contest.id}}
+</div>
 {% endblock %}
 
+{% block script %}
+
+<script>
+    const userUrlTemplate = "{% url 'core:user_profile' 'none' %}";
+    window.onload = function() {
+        const contest_id = {{ contest.id }};
+        fetch(`leaderboard`).then(response=>{
+        if (!response.ok){
+            throw new Error(' error occureed when fetching the leaderboard')
+        }
+        return response.json();
+    }
+    ).then(data=>{
+        console.log(data);
+        const leaderboard=document.getElementById('leaderboard');
+         leaderboard.innerHTML=`<h1>Leaderboard</h1><div id='leaderboard-table-container'><table id="leaderboard-table"><thead><tr><td>Rank</td><td>Jntu No</td><td>Username</td><td>Score</td><td>Last Activity</td></tr></thead><tbody></tbody></table></div>`;
+        let rowsHTML = '';
+        data.participants.forEach((item) => {
+            const userProfileUrl = userUrlTemplate.replace('none', item.username);
+
+            rowsHTML += `
+                <tr>
+                    <td>${item.rank}</td>
+                    <td>${item.jntuno}</td>
+                
+                    <td><a style='text-decoration:none;color:var(--text-secondary);' href="${userProfileUrl}">${item.username}</a></td>
+                    <td>${item.score}</td>
+                    <td>${(new Date(item.last_activity)).toLocaleTimeString()}</td>
+                </tr>
+            `;
+        });
+        const tableBody = document.querySelector('#leaderboard-table tbody'); // Get the table body
+        tableBody.innerHTML = rowsHTML;
+        console.log(data);
+    }
+    )
+    }
+</script>
+{% endblock %}

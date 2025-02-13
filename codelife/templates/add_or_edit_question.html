@@ -11,10 +11,13 @@
     <textarea name="description" required>{{ question.description|default:'' }}</textarea><br>
 
     <label>Score:</label>
-    <input type="number" name="score" value="{{ question.score|default:'' }}" required><br>
+    <input type="number" name="score" value="{{ question.score|default:'100' }}" required><br>
+
+    <label>Lives:</label>
+    <input type="number" name="lives" value="{{ question.lives|default:'5' }}" required><br>
 
     <label>Time Limit (in sec):</label>
-    <input type="number" step="0.1" name="time_limit" value="{{ question.timelimit|default:'' }}" required><br>
+    <input type="number" step="0.1" name="timelimit" value="{{ question.timelimit|default:'100' }}" required><br>
 
     <h3>Testcases</h3>
     <div id="testcase-container">
