@@ -509,7 +509,7 @@ display: none;
     display: none;
 }
 
-#end-contest,#failed-submission {
+#end-contest,#failed-submission,#enable-fullscreen {
     width:30%;
     height: 50%;
     background-color:var(--bg-secondary);
@@ -575,7 +575,6 @@ display: none;
 #leaderboard-table-container{
     overflow-x: auto;
     width: 100%;
-
     overflow-x: auto;
 }
 

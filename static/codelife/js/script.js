@@ -224,8 +224,70 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     loadQuestion(-1);
     initializeSubmitButton();
-   
+
+    const cover = document.getElementById('cover-content');
+    const fs = document.getElementById('enable-fullscreen');
+
+    function requestFullScreen() {
+        let elem = document.documentElement;
+
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) { // Firefox
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) { // Chrome, Safari, Opera
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { // IE/Edge
+            elem.msRequestFullscreen();
+        }
+    }
+
+    function isFullScreen() {
+        return document.fullscreenElement || 
+               document.mozFullScreenElement || 
+               document.webkitFullscreenElement || 
+               document.msFullscreenElement || 
+               (window.innerHeight === screen.height);
+    }
+
+    function toggleFullScreenButton() {
+        if (isFullScreen()) {
+            cover.style.display = "none";
+            fs.style.display = "none";
+            // console.log('Full screen enabled');
+        } else {
+            // cover.style.display = "flex";
+            // fs.style.display = "flex";
+            // console.log('Full screen disabled');
+        }
+    }
+
+    document.getElementById('fullscreen').addEventListener("click", function () {
+        requestFullScreen();
+    });
+
+    // Detect full-screen exit/change
+    document.addEventListener("fullscreenchange", toggleFullScreenButton);
+    document.addEventListener("mozfullscreenchange", toggleFullScreenButton);
+    document.addEventListener("webkitfullscreenchange", toggleFullScreenButton);
+    document.addEventListener("msfullscreenchange", toggleFullScreenButton);
+
+    // Detect F11 press
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "F11") {
+            setTimeout(toggleFullScreenButton, 500); // Delay to allow full-screen detection
+        }
+    });
+
+    // Detect window resize (useful for F11 full-screen)
+    window.addEventListener("resize", () => {
+        setTimeout(toggleFullScreenButton, 500);
+    });
+
+    // Initial check
+    toggleFullScreenButton();
 });
+
 
 
 
@@ -234,10 +296,10 @@ function endContest(){
     cover.style.display = 'flex';
     document.getElementById('end-contest').style.display='flex';
 }
-function confirmEndContest(){
+// function confirmEndContest(){
 
     
-}
+// }
 function cancelContent(button){
     let parent=button.parentElement;
     let grandParentDiv = parent.parentElement;
@@ -245,4 +307,4 @@ function cancelContent(button){
     const cover = document.getElementById('cover-content');
     cover.style.display = 'none';
 
-}
+}  

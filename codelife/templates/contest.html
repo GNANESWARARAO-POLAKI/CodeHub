@@ -156,8 +156,8 @@
                                 </select>
                                 <div class="score">Total-Score: <b id="current-score">0</b>/<b id="total-score">500</b></div>
                                 <div class="icons">
-                                    <button class="icon" data-tooltip="refresh code">🔄</button>
-                                    <button class="icon" data-tooltip="cange font-size">⚙️</button>
+                                    <!-- <button class="icon" data-tooltip="refresh code">🔄</button>
+                                    <button class="icon" data-tooltip="cange font-size">⚙️</button> -->
                                     <button class="icon" id="toggle_full_screen" data-tooltip="full screen editor">↗️</button>
                                     <button class='icon' id="toggle_button" data-tooltip="change theme">🔆</button>
                                 </div>
@@ -199,13 +199,18 @@
            <h2>conform end contest</h2> 
             <div >
                 <button class="button" onclick="cancelContent(this)">cancel</button>
-                <button class="button" onclick='confirmEndContest()'>confirm</button>
+                <a class="button" href="{% url 'codelife:contest_results' contest.id%}" style="text-decoration: none;color:var(--accent-text)">confirm</a>
             </div>
         </div>
         <div id="failed-submission">
             <h2>Submission failed</h2>
-            <p>please try again</p>
-            <button class="button" onclick="cancelContent(this)">cancel</button>
+            <p> you lost all your lives.</p>
+            <div>
+            <button class="button" onclick="cancelContent(this)">cancel</button></div>
+        </div>
+        <div id="enable-fullscreen">
+            <h2>Enable full screen to continue to write contest</h2>
+            <button class="button" id="fullscreen" >Enable</button>
         </div>
     </div>
         

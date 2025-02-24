@@ -13,6 +13,7 @@ class Questions(models.Model):
     timelimit=models.PositiveIntegerField()
     score=models.PositiveIntegerField()
     lives=models.PositiveIntegerField(default=5)
+    
     def save(self,*args,**kwargs):
         self.title=self.title.capitalize()
         super().save(*args,**kwargs)

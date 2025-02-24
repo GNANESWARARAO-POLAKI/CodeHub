@@ -22,31 +22,51 @@ class User(AbstractUser):
         self.save(*args,**kwargs)
 
 
+class ContestManager(models.Manager):
+    def upcoming(self):
+        """Returns contests that have not started yet."""
+        current_time = localtime(now())
+        return self.filter(start_date__gt=current_time)
+
+    def ongoing(self):
+        """Returns contests that are currently active."""
+        current_time = localtime(now())
+        return self.filter(start_date__lte=current_time, end_date__gte=current_time)
+
+    def past(self):
+        """Returns contests that have already ended."""
+        current_time = localtime(now())
+        return self.filter(end_date__lt=current_time)
+
 class Contests(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     is_active = models.BooleanField(default=True)
-    contest_type=models.PositiveIntegerField()
-    venue=models.CharField(max_length=30)
-    poster=models.ImageField(null=True,upload_to='contest_posters/')
+    contest_type = models.PositiveIntegerField()
+    venue = models.CharField(max_length=30)
+    poster = models.ImageField(null=True, upload_to='contest_posters/')
     winners = models.ManyToManyField(User, related_name='contest_winners', blank=True)
-    runner=models.CharField(max_length=40,null=True,blank=True)
-    # duration=models.PositiveIntegerField(default=60)
-    # is_draft=models.BooleanField(default=False)
+    runner = models.CharField(max_length=40, null=True, blank=True)
+
+    objects = ContestManager()  # Custom manager
+
     def clean(self):
+        """Validation checks for contest fields."""
         if self.start_date >= self.end_date:
             raise ValidationError("Start date must be earlier than end date.")
         if self.contest_type not in [1, 2]:
             raise ValidationError("Contest type must be 1 or 2.")
-    
+
     def save(self, *args, **kwargs):
-        self.full_clean() 
+        """Ensure validation before saving."""
+        self.full_clean()
         super().save(*args, **kwargs)
 
     @property
     def status(self):
+        """Returns the contest status dynamically."""
         current_time = localtime(now())
         if current_time < self.start_date:
             return "Upcoming"
@@ -54,10 +74,6 @@ class Contests(models.Model):
             return "Ongoing"
         else:
             return "Past"
-            
 
     def __str__(self):
         return self.title
-
-
-

@@ -226,8 +226,17 @@ def leaderboard(request, contest_id):
         }
         for index,participant in enumerate(participants)
     ]
+    # if Participant.objects.filter(contest=contest,user=request.user).exists():
+    #     current_rank=get_object_or_404(Participant,user=request.user,contest=contest)
+    # else:
+    #     contest_rank=-1
+    is_staff = False
+    if request.user and request.user.is_staff:
+        is_staff = True
     data = {
+        'is_staff':is_staff,
         'participants': participants_data,
+        # 'current_rank':
     }
 
     return JsonResponse(data)
@@ -383,8 +392,65 @@ def is_solved(question,user):
     return Submission.objects.filter(output=1, participant__user=user, question=question).exists()
     
 
+@login_required
+def manage_contest(request,contest_id):
+    contest = get_object_or_404(Contests,id=contest_id)
+    if contest.status=='Past':
+        if contest.winners.exists():
+            winner_users=list(contest.winners.all())
+            winners = Participant.objects.filter(user=winner_users[0], contest=contest)
+            for winner in winner_users[1:]:
+                winners|=Participant.objects.filter(user=winner_users[1], contest=contest)
+            return render(request, 'contest_results.html', {'contest': contest, 'winners': winners})      
+        else:
+            participants=Participant.objects.filter(contest=contest).order_by('-score', 'last_activity')
+            contest.winners.add(participants[0].user.id)
+            contest.winners.add(participants[1].user.id)
+            # print(participants[0].user.username)
+            contest.save() 
+    return render(request,'manage_contest.html',{'contest':contest})
 
+from django.db.models import Q
 
+@login_required
+def manage_participant(request, contest_id, participant_name):
+    contest = get_object_or_404(Contests, id=contest_id)
+    participant = get_object_or_404(Participant, user__username=participant_name, contest=contest)
+
+    # Fetch all questions from the contest AND questions the participant has submitted for
+    questions = Questions.objects.filter(
+        Q(contest=contest) | Q(submissions__participant=participant)
+    ).distinct()
+
+    # Get all submissions of the participant
+    submissions = Submission.objects.filter(participant=participant).select_related('question')
+
+    # Organizing submissions by question ID
+    question_submissions = {question.id: [] for question in questions}
+    lives_lost = {question.id: 0 for question in questions}
+
+    # Process submissions
+    for submission in submissions:
+        question_id = submission.question.id
+        if question_id not in question_submissions:
+            question_submissions[question_id] = []  # Ensure the key exists
+
+        question_submissions[question_id].append(submission)
+        
+        if submission.output != 1:  # Assuming output != 1 means failure
+            lives_lost[question_id] += 1
+
+    return render(
+        request,
+        'manage_participant.html',
+        {
+            'participant': participant,
+            'contest': contest,
+            'questions': questions,
+            'question_submissions': question_submissions,
+            'lives_lost': lives_lost
+        }
+    )
 
 def ended_contests(request,contest_id):
     contest = get_object_or_404(Contests,id=contest_id)
@@ -402,3 +468,32 @@ def ended_contests(request,contest_id):
             # print(participants[0].user.username)
             contest.save()
     return render(request, 'contest_results.html', {'contest': contest})
+
+
+def add_life(request):
+    if not request.user.is_staff:
+        HttpResponseBadRequest("Invalid Request")
+    if request.method == "POST":
+        participant_id = request.POST.get("participant_id")
+        question_id = request.POST.get("question_id")
+
+        # Fetch participant and question
+        participant = get_object_or_404(Participant, id=participant_id)
+        question = get_object_or_404(Questions, id=question_id)
+
+        # Get all submissions for this participant & question
+        submissions = Submission.objects.filter(participant=participant, question=question)
+
+        # Calculate lost submissions
+        lost_submissions = submissions.count() - submissions.filter(output=1).count() if submissions.exists() else 0
+
+        if lost_submissions > 0:
+            # Delete the last failed submission
+            failed_submission = submissions.filter(~Q(output=1)).last()
+            if failed_submission:
+                failed_submission.delete()
+
+        # Redirect back to manage_participant page
+        return redirect('codelife:manage_participant', contest_id=question.contest.id, participant_name=participant.user.username)
+
+    return HttpResponseBadRequest("Invalid Request")

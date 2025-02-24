@@ -119,11 +119,14 @@ def edit_contest(request, contest_id):
 
 
 def contests(request):
-    upcomming_contests=Contests.objects.filter(is_active=True)
-    for contest in upcomming_contests:
+    upcoming_contests = Contests.objects.upcoming() 
+    for contest in upcoming_contests:
         contest.seconds_now=int((contest.start_date-localtime(now())).total_seconds())
-    past_contests=Contests.objects.filter(is_active=False)
-    return render(request,'contests.html',{'upcomming_contests':upcomming_contests,'past_contests':past_contests})
+    ongoing_contests = Contests.objects.ongoing()    # Get ongoing contests
+    for contest in ongoing_contests:
+        contest.seconds_now=int((contest.end_date-localtime(now())).total_seconds())
+    past_contests = Contests.objects.past()   
+    return render(request,'contests.html',{'upcomming_contests':upcoming_contests,'past_contests':past_contests,'ongoing_contests':ongoing_contests})
 
 
 
