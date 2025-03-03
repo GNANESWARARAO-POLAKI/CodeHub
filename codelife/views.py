@@ -11,7 +11,17 @@ import requests
 from django.utils.timezone import localdate,localtime,now
 
 # url = 'http://172.30.100.208:8000/run/'
+
+
 url='http://127.0.0.1:8080/run/'
+
+
+# url='http://172.30.94.65:9000/run/'  
+# ---ml lab gpu 
+
+
+#--project lab gpu 
+# url='http://172.30.100.82:9000/run/'
 
 
 
@@ -43,7 +53,6 @@ def contest_details(request,contest_id):
         return render(request,'contest_details.html',{'questions':questions,'contest':contest,'registration_count':registration_count,'is_participant':is_participant})
     return render(request,'contest_details.html',{'contest':contest,'is_participant':is_participant,'registration_count':registration_count})
 
-
 @login_required
 def codelife_contest(request,contest_id):
     contest=get_object_or_404(Contests,id=contest_id)
@@ -51,8 +60,44 @@ def codelife_contest(request,contest_id):
     is_participant=Participant.objects.filter(contest=contest,user=request.user).exists()
     if not is_participant or contest.status=='Upcoming' :
         return redirect('codelife:contest_details', contest_id=contest.id)
+    if contest.status=='Past':
+        return redirect('codelife:contest_results',contest_id=contest.id)
     # print(localtime(now()),'-',contest.end_date,'=',current_time)
-    return render(request,'contest.html',{'contest':contest,'current_time':current_time})
+    # print(localtime().strftime('%H%M'))
+    participant=get_object_or_404(Participant,user=request.user,contest=contest)
+    return render(request,'contest.html',{'contest':contest,'current_time':current_time,'participant':participant})
+
+
+
+def verify_passcode(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)  # Read JSON data correctly
+            contest_id = data.get('contest_id')
+            passcode = data.get('passcode')
+
+            contest = get_object_or_404(Contests, id=contest_id)  # Validate contest
+
+                
+            if passcode == localtime().strftime('%MGMRIT%H'):  # Replace with your actual validation logic
+                participant = get_object_or_404(Participant, user=request.user, contest=contest)
+                participant.is_active = True
+                participant.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Passcode verified successfully!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid passcode!'
+                })
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data!'}, status=400)
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method!'}, status=400)
 
 # @login_required
 # def add_question(request, contest_id):
@@ -223,6 +268,7 @@ def leaderboard(request, contest_id):
             'score': participant.score,
             'jntuno': participant.user.jntuno,
             'last_activity': participant.last_activity,
+            'year':participant.user.year,
         }
         for index,participant in enumerate(participants)
     ]
@@ -326,7 +372,7 @@ def submit(request,  question_id):
         data = response.json()
 
         # print(data)
-        lang=['','python','c','c++','java']
+        lang=['','python','c','cpp','java']
         errors=['','runtime_error','compliation_error','wrong_answer','time_limit_exceeded']
         sample=data['sample_testcase']
         hidden=data['hidden_testcase']
@@ -347,9 +393,11 @@ def submit(request,  question_id):
             else:
                 score+=question_score/testcases_count
         if success==True and not Submission.objects.filter(question=question,output=1,participant=participant).exists() :
-            participant.score+=score
+            participant.score+=question.score
+            score=question.score
             participant.save()
             # print(participant.score)
+
         else:
             score=0
         Submission.objects.create(question=question,code=code,language=lang.index(language),output=errors.index(status)+1,score=score,participant=participant,json_data=data)
@@ -362,7 +410,8 @@ def submit(request,  question_id):
     except requests.exceptions.RequestException as err:
         return JsonResponse({'error': f"An error occurred: {err}"},status=505)
     # Return the output of the code execution
-    print(data)
+    print(data,score)
+    current_score=participant.score
     return JsonResponse(data|{'score':score,'success':success,'current_score':current_score})
 
 @csrf_exempt
@@ -451,9 +500,13 @@ def manage_participant(request, contest_id, participant_name):
             'lives_lost': lives_lost
         }
     )
-
-def ended_contests(request,contest_id):
+@login_required
+def contest_results(request,contest_id):
     contest = get_object_or_404(Contests,id=contest_id)
+    if Participant.objects.filter(contest=contest,user=request.user).exists() and not request.user.is_staff:
+        current_user_participant=get_object_or_404(Participant,user=request.user,contest=contest)
+        current_user_participant.is_active=False
+        current_user_participant.save()
     if contest.status=='Past':
         if contest.winners.exists():
             winner_users=list(contest.winners.all())
@@ -497,3 +550,149 @@ def add_life(request):
         return redirect('codelife:manage_participant', contest_id=question.contest.id, participant_name=participant.user.username)
 
     return HttpResponseBadRequest("Invalid Request")
+
+
+@csrf_exempt
+def run_code(request, question_id):
+    user = get_object_or_404(User, id=request.user.id)
+    question = get_object_or_404(Questions, id=question_id)
+    participant = get_object_or_404(Participant, user=user, contest=question.contest)
+    current_score = participant.score
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    passed_data = json.loads(request.body)
+    
+    if question.contest.end_date < localtime(now()):
+        return JsonResponse({'error': 'Contest has ended'}, status=400)
+    
+    code = passed_data['code']
+    language = passed_data['language']
+    saving_data = save_temp_code(user, passed_data['temp_code_data'])
+    testcases = Testcases.objects.filter(question=question)
+    testcases_count = testcases.count()
+    
+    jsondata = {
+        'testcases': [testcase.serialize() for testcase in testcases],
+        'testcases_count': testcases_count,
+        'code': code,
+        'language': language,
+        'timelimit': question.timelimit,
+    }
+    
+    try:
+        response = requests.post(
+            url,
+            json=jsondata
+        )
+        data = response.json()
+        
+        lang = ['', 'python', 'c', 'c++', 'java']
+        errors = ['', 'runtime_error', 'compilation_error', 'wrong_answer', 'time_limit_exceeded']
+        
+        sample = data['sample_testcase']
+        success = True
+        status = ''
+        score = 0
+        
+        for testcase_result in sample:
+            if not testcase_result['success']:
+                success = False
+                status = testcase_result['error']
+        
+        score = 0  # No scoring in run_code
+        
+        Submission.objects.create(
+            question=question,
+            code=code,
+            language=lang.index(language),
+            output=errors.index(status) + 1,
+            score=score,
+            participant=participant,
+            json_data=data
+        )
+        
+        # Return response without hidden test cases
+        return JsonResponse({'sample_testcase': sample, 'score': score, 'success': success, 'current_score': current_score})
+    
+    except requests.exceptions.HTTPError as errh:
+        return JsonResponse({'error': f"HTTP error occurred: {errh}"}, status=505)
+    except requests.exceptions.ConnectionError as errc:
+        return JsonResponse({'error': f"Error connecting: {errc}"}, status=505)
+    except requests.exceptions.Timeout as errt:
+        return JsonResponse({'error': f"Timeout error: {errt}"}, status=505)
+    except requests.exceptions.RequestException as err:
+        return JsonResponse({'error': f"An error occurred: {err}"}, status=505)
+@csrf_exempt
+def run_code(request, question_id):
+    user = get_object_or_404(User, id=request.user.id)
+    question = get_object_or_404(Questions, id=question_id)
+    participant = get_object_or_404(Participant, user=user, contest=question.contest)
+    current_score = participant.score
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    passed_data = json.loads(request.body)
+    
+    if question.contest.end_date < localtime(now()):
+        return JsonResponse({'error': 'Contest has ended'}, status=400)
+    
+    code = passed_data['code']
+    language = passed_data['language']
+    saving_data = save_temp_code(user, passed_data['temp_code_data'])
+    testcases = Testcases.objects.filter(question=question)
+    testcases_count = testcases.count()
+    
+    jsondata = {
+        'testcases': [testcase.serialize() for testcase in testcases],
+        'testcases_count': testcases_count,
+        'code': code,
+        'language': language,
+        'timelimit': question.timelimit,
+    }
+    
+    try:
+        response = requests.post(
+            url,
+            json=jsondata
+        )
+        data = response.json()
+        
+        lang = ['', 'python', 'c', 'c++', 'java']
+        errors = ['', 'runtime_error', 'compilation_error', 'wrong_answer', 'time_limit_exceeded']
+        
+        sample = data['sample_testcase']
+        success = True
+        status = ''
+        score = 0
+        
+        for testcase_result in sample:
+            if not testcase_result['success']:
+                success = False
+                status = testcase_result['error']
+        
+        # score = 0  # No scoring in run_code
+        
+        # Submission.objects.create(
+        #     question=question,
+        #     code=code,
+        #     language=lang.index(language),
+        #     output=errors.index(status) + 1,
+        #     score=score,
+        #     participant=participant,
+        #     json_data=data
+        # )
+        
+        # Return response without hidden test cases
+        return JsonResponse({'sample_testcase': sample, 'score': score, 'success': success, 'current_score': current_score})
+    
+    except requests.exceptions.HTTPError as errh:
+        return JsonResponse({'error': f"HTTP error occurred: {errh}"}, status=505)
+    except requests.exceptions.ConnectionError as errc:
+        return JsonResponse({'error': f"Error connecting: {errc}"}, status=505)
+    except requests.exceptions.Timeout as errt:
+        return JsonResponse({'error': f"Timeout error: {errt}"}, status=505)
+    except requests.exceptions.RequestException as err:
+        return JsonResponse({'error': f"An error occurred: {err}"}, status=505)

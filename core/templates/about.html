@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<title>About CodeHub - Gamified Coding Platform</title>
+{% endblock %}
+
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link">Contests</a>
+<a href="{% url 'core:about'%}" class="nav-link active">About</a>
+{% endblock %}
+
+{% block body %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">About CodeHub</h1>
+        <p class="hero-subtitle">Transforming Competitive Programming Through Gamification</p>
+    </div>
+</div>
+
+<section class="features-section">
+    <h2 class="section-title">Our Unique Contest Themes</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">❤️</div>
+            <h2>CodeLife</h2>
+            <p>Experience coding with a gaming twist! Each question comes with lives - every failed attempt costs a life. Can you solve the challenges before running out of lives?</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🐛</div>
+            <h2>DebugCode</h2>
+            <p>Sharpen your debugging skills by finding and fixing bugs in code snippets. Test your ability to spot issues and optimize solutions.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🏆</div>
+            <h2>ComptiCode</h2>
+            <p>Traditional competitive programming platform for those who love classic coding contests. Solve problems, optimize solutions, and climb the leaderboard.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🚀</div>
+            <h2>Coming Soon</h2>
+            <p>More exciting themes are in development! We're constantly innovating to make competitive programming more engaging and fun.</p>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section">
+    <h2 class="section-title">Platform Features</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h2>Gamification</h2>
+            <p>Learn while playing</p>
+        </div>
+        <div class="stat-card">
+            <h2>Real-time</h2>
+            <p>Live contests</p>
+        </div>
+        <div class="stat-card">
+            <h2>Multiple Themes</h2>
+            <p>Different ways to code</p>
+        </div>
+        <!-- <div class="stat-card">
+            <h2>Community</h2>
+            <p>Learn together</p>
+        </div> -->
+    </div>
+</section>
+
+<section class="features-section">
+    <h2 class="section-title">Meet the Developer</h2>
+    <div class="feature-card" style="max-width: 600px; margin: 0 auto;">
+        <div class="feature-icon">👨‍💻</div>
+        <h2>Gnaneswararao</h2>
+        <p class="text-center" style="line-height: 1.8;">
+            A passionate developer dedicated to making competitive programming more accessible and enjoyable. 
+            With a vision to gamify coding education, Gnaneswararao created CodeHub to bring a fresh perspective 
+            to how we learn and practice programming.
+        </p>
+    </div>
+</section>
+
+<section class="features-section">
+    <h2 class="section-title">Technologies Used</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🐍</div>
+            <h2>Backend</h2>
+            <p>Django Framework, FastAPI</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🎨</div>
+            <h2>Frontend</h2>
+            <p>HTML5, CSS3, JavaScript</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🗄️</div>
+            <h2>Database</h2>
+            <p>PostgreSQL</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h2>Security</h2>
+            <p>Django Security Features</p>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <h2>Ready to Start Your Coding Journey?</h2>
+    <p>Join on CodeHub to get an gamified coding experience.</p>
+    {% if not request.user.is_authenticated %}
+    <div class="cta-buttons">
+        <a href="{% url 'core:register' %}" class="cta-button primary">Sign Up Now</a>
+        <a href="{% url 'core:login' %}" class="cta-button secondary">Login</a>
+    </div>
+    {% else %}
+    <div class="cta-buttons">
+        <a href="{% url 'core:contests' %}" class="cta-button primary">View Contests</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

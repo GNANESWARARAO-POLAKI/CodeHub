@@ -11,7 +11,17 @@ import requests
 from django.utils.timezone import localdate,localtime,now
 
 # url = 'http://172.30.100.208:8000/run/'
+
+
 url='http://127.0.0.1:8080/run/'
+
+
+# url='http://172.30.94.65:9000/run/'  
+# ---ml lab gpu 
+
+
+#--project lab gpu 
+# url='http://172.30.100.82:9000/run/'
 
 
 
@@ -28,7 +38,7 @@ def register(request,contest_id):
             messages.success(request, "Registration successful!")
         return JsonResponse({'message': 'Registration successful!','success':True})
 
-    return redirect('codelife:contest_details', contest_id=contest.id)
+    return redirect('compticode:contest_details', contest_id=contest.id)
 
 
 def contest_details(request,contest_id):
@@ -40,19 +50,55 @@ def contest_details(request,contest_id):
     # print(localtime(now()).strftime('%Y-%m-%d %H:%M:%S'))
     if request.user.is_staff:
         questions=Questions.objects.filter(contest=contest)
-        return render(request,'contest_details.html',{'questions':questions,'contest':contest,'registration_count':registration_count,'is_participant':is_participant})
-    return render(request,'contest_details.html',{'contest':contest,'is_participant':is_participant,'registration_count':registration_count})
+        return render(request,'compticode/contest_details.html',{'questions':questions,'contest':contest,'registration_count':registration_count,'is_participant':is_participant})
+    return render(request,'compticode/contest_details.html',{'contest':contest,'is_participant':is_participant,'registration_count':registration_count})
 
 
 @login_required
-def codelife_contest(request,contest_id):
+def compticode_contest(request,contest_id):
     contest=get_object_or_404(Contests,id=contest_id)
     current_time=int((contest.end_date-localtime(now())).total_seconds())
     is_participant=Participant.objects.filter(contest=contest,user=request.user).exists()
     if not is_participant or contest.status=='Upcoming' :
-        return redirect('codelife:contest_details', contest_id=contest.id)
+        return redirect('compticode:contest_details', contest_id=contest.id)
+    if contest.status=='Past':
+        return redirect('compticode:contest_results',contest_id=contest.id)
     # print(localtime(now()),'-',contest.end_date,'=',current_time)
-    return render(request,'contest.html',{'contest':contest,'current_time':current_time})
+    # print(localtime().strftime('%H%M'))
+    participant=get_object_or_404(Participant,user=request.user,contest=contest)
+    return render(request,'compticode/contest.html',{'contest':contest,'current_time':current_time,'participant':participant})
+
+
+
+def verify_passcode(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)  # Read JSON data correctly
+            contest_id = data.get('contest_id')
+            passcode = data.get('passcode')
+
+            contest = get_object_or_404(Contests, id=contest_id)  # Validate contest
+
+                
+            if passcode == localtime().strftime('%MGMRIT%H'):  # Replace with your actual validation logic
+                participant = get_object_or_404(Participant, user=request.user, contest=contest)
+                participant.is_active = True
+                participant.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Passcode verified successfully!'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid passcode!'
+                })
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data!'}, status=400)
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method!'}, status=400)
 
 # @login_required
 # def add_question(request, contest_id):
@@ -74,7 +120,7 @@ def codelife_contest(request,contest_id):
 #                 testcase.question = question
 #                 testcase.save()
 
-#             return redirect('codelife:contest_details', contest_id=contest.id)
+#             return redirect('compticode:contest_details', contest_id=contest.id)
 #         else:
 #             # If form is invalid, return with errors
 #             return render(request, 'add_question.html', {
@@ -103,7 +149,7 @@ def codelife_contest(request,contest_id):
 # #         form = AddQuestionsForm(request.POST, instance=question)
 # #         if form.is_valid():
 # #             form.save()  
-# #             return redirect('codelife:contest_details', contest_id=question.contest.id)
+# #             return redirect('compticode:contest_details', contest_id=question.contest.id)
 # #     else:
 # #         form = AddQuestionsForm(instance=question)
 # #     return render(request, 'edit_question.html', {'form': form})
@@ -132,7 +178,7 @@ def codelife_contest(request,contest_id):
 #             for deleted in formset.deleted_objects:
 #                 deleted.delete()
 
-#             return redirect('codelife:contest_details', contest_id=contest.id)
+#             return redirect('compticode:contest_details', contest_id=contest.id)
 
 #         else:
 #             return render(request, 'add_question.html', {
@@ -161,6 +207,7 @@ def add_or_edit_question(request, contest_id=None, question_id=None):
         question = get_object_or_404(Questions, id=question_id)
         contest = question.contest
         is_edit = True
+
     else:
         contest = get_object_or_404(Contests, id=contest_id)
         question = None
@@ -170,20 +217,20 @@ def add_or_edit_question(request, contest_id=None, question_id=None):
         title = request.POST.get('title')
         description = request.POST.get('description')
         score = request.POST.get('score')
-        time_limit = request.POST.get('time_limit')
-
+        timelimit = request.POST.get('timelimit')
         if is_edit:
             question.title = title
             question.description = description
             question.score = score
-            question.time_limit = time_limit
+            question.timelimit = timelimit
             question.save()
         else:
             question = Questions.objects.create(
                 title=title,
                 description=description,
                 score=score,
-                time_limit=time_limit,
+                timelimit=timelimit,
+
                 contest=contest
             )
 
@@ -201,7 +248,7 @@ def add_or_edit_question(request, contest_id=None, question_id=None):
                 testcase.hidden = hidden
                 testcase.save()
 
-        return redirect('codelife:contest_details', contest_id=contest.id)
+        return redirect('compticode:contest_details', contest_id=contest.id)
 
     testcases = Testcases.objects.filter(question=question) if is_edit else []
     return render(request, 'add_or_edit_question.html', {'contest': contest, 'question': question, 'testcases': testcases, 'is_edit': is_edit})
@@ -220,11 +267,21 @@ def leaderboard(request, contest_id):
             'score': participant.score,
             'jntuno': participant.user.jntuno,
             'last_activity': participant.last_activity,
+            'year':participant.user.year,
         }
         for index,participant in enumerate(participants)
     ]
+    # if Participant.objects.filter(contest=contest,user=request.user).exists():
+    #     current_rank=get_object_or_404(Participant,user=request.user,contest=contest)
+    # else:
+    #     contest_rank=-1
+    is_staff = False
+    if request.user and request.user.is_staff:
+        is_staff = True
     data = {
+        'is_staff':is_staff,
         'participants': participants_data,
+        # 'current_rank':
     }
 
     return JsonResponse(data)
@@ -314,7 +371,7 @@ def submit(request,  question_id):
         data = response.json()
 
         # print(data)
-        lang=['','python','c','c++','java']
+        lang=['','python','c','cpp','java']
         errors=['','runtime_error','compliation_error','wrong_answer','time_limit_exceeded']
         sample=data['sample_testcase']
         hidden=data['hidden_testcase']
@@ -335,9 +392,11 @@ def submit(request,  question_id):
             else:
                 score+=question_score/testcases_count
         if success==True and not Submission.objects.filter(question=question,output=1,participant=participant).exists() :
-            participant.score+=score
+            participant.score+=question.score
+            score=question.score
             participant.save()
             # print(participant.score)
+
         else:
             score=0
         Submission.objects.create(question=question,code=code,language=lang.index(language),output=errors.index(status)+1,score=score,participant=participant,json_data=data)
@@ -350,7 +409,8 @@ def submit(request,  question_id):
     except requests.exceptions.RequestException as err:
         return JsonResponse({'error': f"An error occurred: {err}"},status=505)
     # Return the output of the code execution
-    print(data)
+    print(data,score)
+    current_score=participant.score
     return JsonResponse(data|{'score':score,'success':success,'current_score':current_score})
 
 @csrf_exempt
@@ -380,4 +440,258 @@ def is_solved(question,user):
     return Submission.objects.filter(output=1, participant__user=user, question=question).exists()
     
 
+@login_required
+def manage_contest(request,contest_id):
+    contest = get_object_or_404(Contests,id=contest_id)
+    if contest.status=='Past':
+        if contest.winners.exists():
+            winner_users=list(contest.winners.all())
+            winners = Participant.objects.filter(user=winner_users[0], contest=contest)
+            for winner in winner_users[1:]:
+                winners|=Participant.objects.filter(user=winner_users[1], contest=contest)
+            return render(request, 'contest_results.html', {'contest': contest, 'winners': winners})      
+        else:
+            participants=Participant.objects.filter(contest=contest).order_by('-score', 'last_activity')
+            contest.winners.add(participants[0].user.id)
+            contest.winners.add(participants[1].user.id)
+            # print(participants[0].user.username)
+            contest.save() 
+    return render(request,'manage_contest.html',{'contest':contest})
 
+from django.db.models import Q
+
+@login_required
+def manage_participant(request, contest_id, participant_name):
+    contest = get_object_or_404(Contests, id=contest_id)
+    participant = get_object_or_404(Participant, user__username=participant_name, contest=contest)
+
+    # Fetch all questions from the contest AND questions the participant has submitted for
+    questions = Questions.objects.filter(
+        Q(contest=contest) | Q(submissions__participant=participant)
+    ).distinct()
+
+    # Get all submissions of the participant
+    submissions = Submission.objects.filter(participant=participant).select_related('question')
+
+    # Organizing submissions by question ID
+    question_submissions = {question.id: [] for question in questions}
+    lives_lost = {question.id: 0 for question in questions}
+
+    # Process submissions
+    for submission in submissions:
+        question_id = submission.question.id
+        if question_id not in question_submissions:
+            question_submissions[question_id] = []  # Ensure the key exists
+
+        question_submissions[question_id].append(submission)
+        
+        if submission.output != 1:  # Assuming output != 1 means failure
+            lives_lost[question_id] += 1
+
+    return render(
+        request,
+        'manage_participant.html',
+        {
+            'participant': participant,
+            'contest': contest,
+            'questions': questions,
+            'question_submissions': question_submissions,
+            'lives_lost': lives_lost
+        }
+    )
+@login_required
+def contest_results(request,contest_id):
+    contest = get_object_or_404(Contests,id=contest_id)
+    if Participant.objects.filter(contest=contest,user=request.user).exists() and not request.user.is_staff:
+        current_user_participant=get_object_or_404(Participant,user=request.user,contest=contest)
+        current_user_participant.is_active=False
+        current_user_participant.save()
+    if contest.status=='Past':
+        if contest.winners.exists():
+            winner_users=list(contest.winners.all())
+            winners = Participant.objects.filter(user=winner_users[0], contest=contest)
+            for winner in winner_users[1:]:
+                winners|=Participant.objects.filter(user=winner_users[1], contest=contest)
+            return render(request, 'contest_results.html', {'contest': contest, 'winners': winners})      
+        else:
+            participants=Participant.objects.filter(contest=contest).order_by('-score', 'last_activity')
+            contest.winners.add(participants[0].user.id)
+            contest.winners.add(participants[1].user.id)
+            # print(participants[0].user.username)
+            contest.save()
+    return render(request, 'contest_results.html', {'contest': contest})
+
+
+# def add_life(request):
+#     if not request.user.is_staff:
+#         HttpResponseBadRequest("Invalid Request")
+#     if request.method == "POST":
+#         participant_id = request.POST.get("participant_id")
+#         question_id = request.POST.get("question_id")
+
+#         # Fetch participant and question
+#         participant = get_object_or_404(Participant, id=participant_id)
+#         question = get_object_or_404(Questions, id=question_id)
+
+#         # Get all submissions for this participant & question
+#         submissions = Submission.objects.filter(participant=participant, question=question)
+
+#         # Calculate lost submissions
+#         lost_submissions = submissions.count() - submissions.filter(output=1).count() if submissions.exists() else 0
+
+#         if lost_submissions > 0:
+#             # Delete the last failed submission
+#             failed_submission = submissions.filter(~Q(output=1)).last()
+#             if failed_submission:
+#                 failed_submission.delete()
+
+#         # Redirect back to manage_participant page
+#         return redirect('compticode:manage_participant', contest_id=question.contest.id, participant_name=participant.user.username)
+
+#     return HttpResponseBadRequest("Invalid Request")
+
+
+@csrf_exempt
+def run_code(request, question_id):
+    user = get_object_or_404(User, id=request.user.id)
+    question = get_object_or_404(Questions, id=question_id)
+    participant = get_object_or_404(Participant, user=user, contest=question.contest)
+    current_score = participant.score
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    passed_data = json.loads(request.body)
+    
+    if question.contest.end_date < localtime(now()):
+        return JsonResponse({'error': 'Contest has ended'}, status=400)
+    
+    code = passed_data['code']
+    language = passed_data['language']
+    saving_data = save_temp_code(user, passed_data['temp_code_data'])
+    testcases = Testcases.objects.filter(question=question)
+    testcases_count = testcases.count()
+    
+    jsondata = {
+        'testcases': [testcase.serialize() for testcase in testcases],
+        'testcases_count': testcases_count,
+        'code': code,
+        'language': language,
+        'timelimit': question.timelimit,
+    }
+    
+    try:
+        response = requests.post(
+            url,
+            json=jsondata
+        )
+        data = response.json()
+        
+        lang = ['', 'python', 'c', 'c++', 'java']
+        errors = ['', 'runtime_error', 'compilation_error', 'wrong_answer', 'time_limit_exceeded']
+        
+        sample = data['sample_testcase']
+        success = True
+        status = ''
+        score = 0
+        
+        for testcase_result in sample:
+            if not testcase_result['success']:
+                success = False
+                status = testcase_result['error']
+        
+        score = 0  # No scoring in run_code
+        
+        Submission.objects.create(
+            question=question,
+            code=code,
+            language=lang.index(language),
+            output=errors.index(status) + 1,
+            score=score,
+            participant=participant,
+            json_data=data
+        )
+        
+        # Return response without hidden test cases
+        return JsonResponse({'sample_testcase': sample, 'score': score, 'success': success, 'current_score': current_score})
+    
+    except requests.exceptions.HTTPError as errh:
+        return JsonResponse({'error': f"HTTP error occurred: {errh}"}, status=505)
+    except requests.exceptions.ConnectionError as errc:
+        return JsonResponse({'error': f"Error connecting: {errc}"}, status=505)
+    except requests.exceptions.Timeout as errt:
+        return JsonResponse({'error': f"Timeout error: {errt}"}, status=505)
+    except requests.exceptions.RequestException as err:
+        return JsonResponse({'error': f"An error occurred: {err}"}, status=505)
+@csrf_exempt
+def run_code(request, question_id):
+    user = get_object_or_404(User, id=request.user.id)
+    question = get_object_or_404(Questions, id=question_id)
+    participant = get_object_or_404(Participant, user=user, contest=question.contest)
+    current_score = participant.score
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    passed_data = json.loads(request.body)
+    
+    if question.contest.end_date < localtime(now()):
+        return JsonResponse({'error': 'Contest has ended'}, status=400)
+    
+    code = passed_data['code']
+    language = passed_data['language']
+    saving_data = save_temp_code(user, passed_data['temp_code_data'])
+    testcases = Testcases.objects.filter(question=question)
+    testcases_count = testcases.count()
+    
+    jsondata = {
+        'testcases': [testcase.serialize() for testcase in testcases],
+        'testcases_count': testcases_count,
+        'code': code,
+        'language': language,
+        'timelimit': question.timelimit,
+    }
+    
+    try:
+        response = requests.post(
+            url,
+            json=jsondata
+        )
+        data = response.json()
+        
+        lang = ['', 'python', 'c', 'c++', 'java']
+        errors = ['', 'runtime_error', 'compilation_error', 'wrong_answer', 'time_limit_exceeded']
+        
+        sample = data['sample_testcase']
+        success = True
+        status = ''
+        score = 0
+        
+        for testcase_result in sample:
+            if not testcase_result['success']:
+                success = False
+                status = testcase_result['error']
+        
+        # score = 0  # No scoring in run_code
+        
+        # Submission.objects.create(
+        #     question=question,
+        #     code=code,
+        #     language=lang.index(language),
+        #     output=errors.index(status) + 1,
+        #     score=score,
+        #     participant=participant,
+        #     json_data=data
+        # )
+        
+        # Return response without hidden test cases
+        return JsonResponse({'sample_testcase': sample, 'score': score, 'success': success, 'current_score': current_score})
+    
+    except requests.exceptions.HTTPError as errh:
+        return JsonResponse({'error': f"HTTP error occurred: {errh}"}, status=505)
+    except requests.exceptions.ConnectionError as errc:
+        return JsonResponse({'error': f"Error connecting: {errc}"}, status=505)
+    except requests.exceptions.Timeout as errt:
+        return JsonResponse({'error': f"Timeout error: {errt}"}, status=505)
+    except requests.exceptions.RequestException as err:
+        return JsonResponse({'error': f"An error occurred: {err}"}, status=505)

@@ -1,11 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    500
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<title>500 Server Error - CodeHub</title>
+<link rel="stylesheet" href="{% static 'core/css/error.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="error-container">
+    <div class="error-bg">
+        {% for i in "x"|rjust:"20" %}
+        <div class="error-particle"></div>
+        {% endfor %}
+    </div>
+    <div class="error-content">
+        <h1 class="error-code">500</h1>
+        <h2 class="error-title">Server Error</h2>
+        <p class="error-message">Our servers encountered an unexpected error. Our team of coding ninjas is already working on fixing it!</p>
+        <a href="{% url 'core:home' %}" class="error-button">Return Home</a>
+    </div>
+</div>
+{% endblock %}

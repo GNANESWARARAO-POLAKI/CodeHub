@@ -5,9 +5,8 @@ from django.utils.timezone import now,localtime
 
 # Create your models here.
 
-
 class Questions(models.Model):
-    contest=models.ForeignKey(Contests,on_delete=models.CASCADE,related_name='questions')
+    contest=models.ForeignKey(Contests,on_delete=models.CASCADE,related_name='codelife_questions')
     title=models.CharField(max_length=100)
     description=models.TextField(blank=False)
     timelimit=models.PositiveIntegerField()
@@ -56,6 +55,7 @@ class Participant(models.Model):
     score = models.FloatField(default=0)
     lives = models.PositiveIntegerField(default=5) 
     joined_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
     session_id = models.CharField(max_length=255, blank=True, null=True)
     last_activity = models.DateTimeField(auto_now=True)
     class Meta:

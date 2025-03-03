@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link active">Contests</a>
+<a href="{% url 'core:home'%}" class="nav-link">About</a>
+{% endblock %}
+
+
+{% block body %}
+<div class="content">
+    <div class="contests-header">
+        <div class="contests-header-content">{{ contest.title }}</div> 
+        <div class="contest-type active">{{contest.status}}</div>
+    </div>
+<hr>
+<h3>Winners</h3>
+<div class="winners">
+    
+    {% if contest.status == 'Past' %}
+ <!-- <h1>past</h1> -->
+    {% for winner in winners %}
+    <div class="winner-card">
+        <a href="{% url 'core:user_profile' winner.user.username %}" class="winner-link">
+            <div class="winner-image">
+                <img width="100%" src="{% if winner.user.image %}{{ winner.user.image.url }}{% else %}/media/profile_pictures/default.jpg{% endif %}" alt="none">
+            </div>
+            <div class="winner-name">{{ winner.user.username }}</div>
+            <div class="winner-score">Score: {{ winner.score }}</div>
+        </a>
+    </div>
+    {% empty %}
+    <div class="winner-card">
+        <div class="winner-name">Winners not yet to be anounced.</div>
+    </div>
+    {% endfor %}
+    {% else %}  
+    <div class="winner-card">
+        <div class="winner-name">Winners not yet to be anounced.</div>
+    </div>
+    {% endif %} 
+    
+</div>
+<h3>leaderboard</h3>
+<div id="leaderboard">
+
+    {{contest.id}}
+    </div>   
+</div>
+<br>
+
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+    const userUrlTemplate = "{% url 'core:user_profile' 'none' %}";
+    const mageParticipant=`{% url 'compticode:manage_participant' contest.id 'none' %}`;
+    window.onload = function() {
+        const contest_id = {{ contest.id }};
+        fetch(`leaderboard`).then(response=>{
+        if (!response.ok){
+            throw new Error(' error occureed when fetching the leaderboard')
+        }
+        return response.json();
+    }
+    ).then(data=>{
+        console.log(data);
+        const leaderboard=document.getElementById('leaderboard');
+         leaderboard.innerHTML=`<div id='leaderboard-table-container'><table id="leaderboard-table"><thead><tr><td>Rank</td><td>Jntu No</td><td>Username</td><td>Score</td><td>Last Scored</td><td>Year</td></tr></thead><tbody></tbody></table></div>`;
+        let rowsHTML = '';
+        data.participants.forEach((item) => {
+            const userProfileUrl = userUrlTemplate.replace('none', item.username);
+            const manageParticipantUrl = mageParticipant.replace('none', item.username);
+            rowsHTML += `
+                <tr>
+                    <td>${item.rank}</td>
+                    <td>${item.jntuno}</td>
+                    <td><a style='text-decoration:none;color:var(--text-secondary);' href="${userProfileUrl}">${item.username} </a></td>
+                    <td>${item.score}</td>
+                    <td>${(new Date(item.last_activity)).toLocaleTimeString()}</td>
+                    <td>${item.year}</td>
+                     ${data.is_staff ? `<td><a style='text-decoration:none;color:var(--text-secondary);' href='${manageParticipantUrl}' >Manage</a> </td>` : ''}
+                </tr>
+            `;
+        });
+        const tableBody = document.querySelector('#leaderboard-table tbody'); // Get the table body
+        tableBody.innerHTML = rowsHTML;
+        console.log(data);
+    }
+    )
+    }
+</script>
+{% endblock %}

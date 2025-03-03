@@ -96,20 +96,62 @@
             
             <div class="pop-up-container">
                 <div class="pop-header">
-                    <div class="pop-uphead"><h1>Instructions</h1></div> 
-                    <button class="close-button" onclick="closePopUp()">x</button>
+                    <div class="pop-uphead" style="margin-left: 20px;"><h1>Instructions</h1></div> 
+                    <button  style="font-size: 14px;" class="close-button" onclick="closePopUp()">❌</button>
                 </div>
                 <div class="slide active">
-                    <img src="instruction1.jpg" width="100%" alt="Instruction 1">
+                    <img src="/media/core_media/instruction1.jpg" width="100%" alt="Instruction 1">
                     <button class="btn" onclick="nextSlide()">Next</button>
                 </div>
                 <div class="slide">
-                    <img src="instruction2.jpg" width="100%" alt="Instruction 2">
-                    <button class="btn" onclick="nextSlide()">Next</button>
+                    <div style="padding:40px 30px; align-items: center;font-size: 20px;line-height: 2rem;">
+                        <b>🚨 Tab Switching is Not Allowed</b>  
+                        <p style="margin-left: 30px;">
+                            If you switch tabs during the contest, your attempt will be <b>stopped immediately</b> and you will be  
+                            <b>redirected to the results page</b>.
+                        </p>  
+                    
+                        <b>⏳ Submission Rules</b>  
+                        <p style="margin-left: 30px;">
+                            ✅ Submissions are allowed <b>only once every 10 seconds</b>.  
+                            ❌ <b>No Run Button</b> is provided, so review your code carefully before submitting.
+                        </p>  
+                    
+                        <b>❤️ Limited Lives Per Question</b>  
+                        <p style="margin-left: 30px;">
+                            Each question has <b>a limited number of lives</b> based on its difficulty.  
+                            ❌ For <b>each failed submission, one life will be deducted</b>. If lives reach 0, you cannot attempt again.
+                        </p>  
+                    
+                        <b>🔍 Review Before Submitting</b>  
+                        <p style="margin-left: 30px;">
+                            ⚠️ <b>Double-check</b> your solution before submitting. There is <b>no second chance</b> if you run out of lives.
+                        </p>  
+                    </div>
+                    
+                    <button class="btn" style="align-self: center ;" onclick="nextSlide()">Next</button>
                 </div>
                 <div class="slide">
-                    <img src="instruction3.jpg" width="100%" alt="Instruction 3">
-                    <a href="{% url 'codelife:contest' contest.id %}" class="btn">Start Contest</a>
+                    <div style="padding:40px 30px; align-items: center; font-size: 20px; line-height: 2rem;">
+                        <b>🚫 No Auto-Indentation & No Auto-Closing Tags</b>  
+                        <p style="margin-left: 30px;">
+                            Auto-indentation and auto-closing of brackets are disabled. You must <b>manually format your code</b>. 
+                        </p>  
+                        <b>🛑 Full-Screen Mode is Mandatory</b>  
+                        <p style="margin-left: 30px;">
+                            The contest must be attempted <b>only in full-screen mode</b>.  
+                            🖱️ <b>Right-click is disabled</b>, and switching to any other tab <b>will result in disqualification</b>.
+                        </p>  
+                    
+                        <b>🔥 Additional Instructions</b>  
+                        <p style="margin-left: 30px;">
+                            🔹 You can attempt questions in <b>any order</b>.
+                            🔹 Be mindful of the <b>lives</b> for each question. 
+                            🔹 Cheating or bypassing restrictions may result in <b>disqualification</b>.
+                        </p>  
+                    </div>
+                    
+                    <a href="{% url 'codelife:contest' contest.id %}" class="btn" style="align-self: center;margin-left: 40%;">Start Contest</a>
                     <!-- <button class="btn" onclick="startActualContest()">Start Contest</button> -->
                 </div>
             </div>

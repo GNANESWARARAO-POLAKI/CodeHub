@@ -64,9 +64,10 @@
         </style>
 </head>
 <body>
-    {% if contest.status == 'Ongoing' %}
+    <div id="contest" data-contest-id="{{ contest.id }}"></div>
+    {% if contest.status == 'Ongoing' and participant.is_active %}
     <header>
-        <div class="logo">CodeLife</div>
+        <div class="logo">CodeHub</div>
         <div class="timer">00:00:00</div>
         <div id="lives">
             <!-- <span class="heart">❤️</span>
@@ -77,7 +78,7 @@
         </div>
         
     </header>
-    <div id="contest" data-contest-id="{{ contest.id }}"></div>
+   
     <main>
         <div class="content" id="content">
             <div class="left-panel" id="left-panel">
@@ -176,15 +177,18 @@
 
                     </div>
 
-                    <div class="test-editor" style="min-height:fit-content;" >
+                    <div class="test-editor" style="min-height:fit-content;max-height: 400px;" >
                         <div class="editor-header" id="final-result-header">Final Header</div>
-                            <div class="text-content" style="height:min-content;max-height: max-content;" id="final-result">
+                            <div class="text-content" style="height:min-content;max-height: inherit;" id="final-result">
                          none
                         </div>
                     </div>
                 </div>
-                <button class="submit-btn" id="submit-btn">Submit</button>
+                <div class="btn-container">
+                    <button class="submit-btn" id="run-btn" data-tooltip="Click to Run" style="">Run</button>
+                <button class="submit-btn" id="submit-btn" data-tooltip="Click to Submit">Submit</button></div>
             </div>
+            <!-- <button class="submit-btn" id="submit-btn" data-tooltip="Click to Submit">Submit</button></div> -->
         </div>
 
         <div id="mainframe-cover">
@@ -286,7 +290,6 @@
 }
 
 textarea1.addEventListener("keydown", (event) => {
-    // Check if the 'Tab' key was pressed
     if (event.key === "Tab") {
         event.preventDefault();
         const start = textarea1.selectionStart;
@@ -300,13 +303,13 @@ textarea1.addEventListener("keydown", (event) => {
     }
 });
 
-// function updateCode() {
-//     // Your code update logic here
-//     console.log('Code updated');
-// }
+
+
 
 
     </script>
+
+
     
             {% elif contest.status == 'Upcoming' %}
                 <div class="maincontent-cover" >
@@ -316,6 +319,41 @@ textarea1.addEventListener("keydown", (event) => {
                 <div class="maincontent-cover" style="display: flex;">
                     Contest ended
                 </div>
+
+                {% elif not participant.is_active %}
+                <div class="maincontent-cover" style="display: flex;">
+                    <h2>Enter the pass code to participate again , ask cordinators to enter passcode</h2>
+                    
+                        <input type="password" id="passcode" name="passcode" placeholder="Enter passcode" required>
+                        <button class="submit-btn" style='width:max-content;'type="submit" id="submit-passcode">Verify</button>
+                
+                </div>
+                <script>
+    document.getElementById('submit-passcode').addEventListener('click',()=>{
+    const code_value=document.getElementById('passcode').value;
+    const contestId=document.getElementById('contest').dataset.contestId;
+    fetch('/codelife/verify_passcode',{
+        method:'POST',
+        headers:{
+           'Content-Type':'application/json' ,
+              'X-CSRFToken': `{{ csrf_token }}`,
+        },
+        body:JSON.stringify({
+            'passcode':code_value,
+            'contest_id':contestId
+        }),
+    }).then(response => response.json()) 
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.href =window.location.href;
+            // Redirect to contest page
+        } else {
+            alert("Invalid passcode. Try again.");
+        }
+    })
+});
+                </script>
                 {% endif %}
 
                 <script src="{% static 'codelife/js/theme.js' %}"></script>

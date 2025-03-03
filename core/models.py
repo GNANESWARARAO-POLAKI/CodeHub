@@ -11,6 +11,7 @@ class User(AbstractUser):
     image=models.ImageField(upload_to='profile_pictures/',null=True,blank=True,default='profile_pictures/default.jpg')
     branch=models.CharField(max_length=10)
     college=models.CharField(max_length=100,default='GMRIT')
+    year=models.PositiveIntegerField(default=3,null=False,blank=False)
 
     def save(self,*args,**kwargs):
         first_name=self.first_name.capitalize()
@@ -26,6 +27,7 @@ class ContestManager(models.Manager):
     def upcoming(self):
         """Returns contests that have not started yet."""
         current_time = localtime(now())
+        
         return self.filter(start_date__gt=current_time)
 
     def ongoing(self):
@@ -44,20 +46,20 @@ class Contests(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     is_active = models.BooleanField(default=True)
-    contest_type = models.PositiveIntegerField()
+    contest_type = models.CharField(max_length=20)
     venue = models.CharField(max_length=30)
     poster = models.ImageField(null=True, upload_to='contest_posters/')
     winners = models.ManyToManyField(User, related_name='contest_winners', blank=True)
     runner = models.CharField(max_length=40, null=True, blank=True)
-
+     
     objects = ContestManager()  # Custom manager
-
+    questions=models.ManyToManyField('Question',related_name='contest_questions',blank=True)
     def clean(self):
         """Validation checks for contest fields."""
         if self.start_date >= self.end_date:
             raise ValidationError("Start date must be earlier than end date.")
-        if self.contest_type not in [1, 2]:
-            raise ValidationError("Contest type must be 1 or 2.")
+        if self.contest_type not in ['codelife', 'compticode', 'debugcode']:
+            raise ValidationError("Contest type must be compticode or codelife.")
 
     def save(self, *args, **kwargs):
         """Ensure validation before saving."""
@@ -77,3 +79,32 @@ class Contests(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+class Question(models.Model):
+    title=models.CharField(max_length=100)
+    description=models.TextField(blank=False)
+    timelimit=models.PositiveIntegerField()
+    score=models.PositiveIntegerField()
+    lives=models.PositiveIntegerField(default=5)
+    
+    def save(self,*args,**kwargs):
+        self.title=self.title.capitalize()
+        super().save(*args,**kwargs)
+
+    def serialize(self):
+        return {
+            'id':self.id,
+            'title':self.title,
+            'description':self.description,
+            'score':self.score,
+            'lives':self.lives,
+        }
+    # def is_solved(user):
+    #     # if user.is_anonymous:
+    #     #     return False
+    #     return Submission.objects.filter(output=1, participant__user=user).exists()
+  
+    def __str__(self):
+        return f"Question :{self.title} "

@@ -129,6 +129,8 @@ def contests(request):
     return render(request,'contests.html',{'upcomming_contests':upcoming_contests,'past_contests':past_contests,'ongoing_contests':ongoing_contests})
 
 
+def about(request):
+    return render(request,'about.html')
 
 
 def custom_400(request,exception):

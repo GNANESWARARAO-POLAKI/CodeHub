@@ -8,7 +8,7 @@
     <input type="text" name="title" value="{{ question.title|default:'' }}" required><br>
 
     <label>Description:</label>
-    <textarea name="description" required>{{ question.description|default:'' }}</textarea><br>
+    <textarea style="width: 50%;height: 200px;" name="description" required>{{ question.description|default:'' }}</textarea><br>
 
     <label>Score:</label>
     <input type="number" name="score" value="{{ question.score|default:'100' }}" required><br>
@@ -48,7 +48,7 @@
     <button type="button" onclick="addTestcase()">Add Testcase</button>
     <button type="submit">Submit</button>
 </form>
-
+<div style="height: 100px;">----</div>
 <script>
     function addTestcase() {
         let count = document.getElementById('testcase-container').children.length;

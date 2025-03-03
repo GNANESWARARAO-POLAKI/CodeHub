@@ -36,14 +36,14 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'core',
     'codelife',
-    # 'compticode',
+    'compticode',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'django_extensions',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -83,10 +83,10 @@ WSGI_APPLICATION = 'CodeHub.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'databasev2.sqlite3',
+    }
     # 'default': {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': 'database',
@@ -95,14 +95,6 @@ DATABASES = {
     #     'HOST': 'localhost',  # Or the database server address
     #     'PORT': '5432',       # Default PostgreSQL port
     # }
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'database',
-        'USER': 'postgres',
-        'PASSWORD': '4544',
-        'HOST': 'localhost',  # Or the database server address
-        'PORT': '5432',       # Default PostgreSQL port
-    }
     #  'default': {
     #     'ENGINE': 'django.db.backends.mysql',
     #     'NAME': 'codehub',  # Replace with your database name

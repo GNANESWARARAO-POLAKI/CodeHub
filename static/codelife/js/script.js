@@ -1,7 +1,26 @@
-// Timer functionality
 
 
-// Tab switching
+// disable right click and inspect element
+// remove tab switch 
+
+// document.addEventListener("contextmenu", event => event.preventDefault());
+// document.addEventListener("keydown", event => {
+//     if (event.key === "F12" || (event.ctrlKey && event.shiftKey && event.key === "I")) {
+//         event.preventDefault();
+//     }
+// });
+
+// document.addEventListener("visibilitychange", function() {
+//     if (document.hidden) {
+//         alert("Switching tabs is not allowed during the contest!");
+//         const contestId=document.getElementById('contest').dataset.contestId;
+//         window.location.href = `${contestId}/contest_results`;  
+//     }
+// });
+
+
+
+
 function initializeTabs() {
     const tabs = document.querySelectorAll('.tab');
     const  tab_contents=document.querySelectorAll('.tab_content');
@@ -30,7 +49,7 @@ function get_leaderboard(){
     }
     ).then(data=>{
 
-        leaderboard.innerHTML=`<h1>Leaderboard</h1><div id='leaderboard-table-container'><table id="leaderboard-table"><thead><tr><td>Rank</td><td>Jntu No</td><td>Username</td><td>Score</td><td>Last Activity</td></tr></thead><tbody></tbody></table></div>`;
+        leaderboard.innerHTML=`<h1>Leaderboard</h1><div id='leaderboard-table-container'><table id="leaderboard-table"><thead><tr><td>Rank</td><td>Jntu No</td><td>Username</td><td>Score</td><td>Last Submission</td><td>Year</td></tr></thead><tbody></tbody></table></div>`;
         let rowsHTML = '';
         data.participants.forEach((item) => {
             rowsHTML += `
@@ -40,6 +59,7 @@ function get_leaderboard(){
                     <td><a style='text-decoration:none;color:var(--text-secondary);' href="../user/${item.username}">${item.username}</a></td>
                     <td>${item.score}</td>
                     <td>${(new Date(item.last_activity)).toLocaleTimeString()}</td>
+                    <td>${item.year}</td>
                 </tr>
             `;
         });
@@ -124,7 +144,7 @@ function loadQuestion(questionNumber) {
             }
             else{
                 submit.disabled=false;
-                submit.removeAttribute('data-tooltip');
+                submit.setAttribute('data-tooltip','Click to Submit');
             }
             for (let i=0;i<data.current_question.lives-data.current_question.lost_submissions;i++){
                 lives.innerHTML+=`<span class="heart" heart-type='red'>❤️</span>`;
@@ -213,7 +233,7 @@ function ContestEnded(){
    const maincover=document.createElement('div');
    maincover.classList.add('maincontent-cover');
    maincover.style.display='flex';
-    maincover.innerHTML=`<h1>Contest Ended</h1><br><h2>Try to refesh.</h2>`;
+    maincover.innerHTML=`<h1>Contest Ended</h1><br><h2>Try to refesh to see reasults.</h2>`;
     document.body.appendChild(maincover);
     document.getElementById('submit-btn').disabled=true;
 }
@@ -224,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     loadQuestion(-1);
     initializeSubmitButton();
-
+    initializeRunButton();
     const cover = document.getElementById('cover-content');
     const fs = document.getElementById('enable-fullscreen');
 
@@ -257,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // console.log('Full screen enabled');
         } else {
             // cover.style.display = "flex";
-            // fs.style.display = "flex";
+            // fs.style.display = "flex"; 
             // console.log('Full screen disabled');
         }
     }
@@ -297,6 +317,8 @@ function endContest(){
     document.getElementById('end-contest').style.display='flex';
 }
 // function confirmEndContest(){
+
+
 
     
 // }

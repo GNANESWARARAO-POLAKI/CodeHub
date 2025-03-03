@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block nav %}
+<a href="{% url 'core:home'%}" class="nav-link">Home</a>
+<a href="{% url 'core:contests'%}" class="nav-link active">Contests</a>
+<a href="{% url 'core:home'%}" class="nav-link">About</a>
+{% endblock %}
+
+
+{% block body %}
+<style>
+    .content-pannels{
+        display: flex;
+        justify-content: space-between;
+        flex-direction: row;
+    }
+    .question-box:hover, .question-box.active {
+        background: var(--accent-color);
+        color: var(--accent-text);
+        font-weight: bold;
+    }
+    .questions-panel {
+        width: 30%;
+        background: var(--bg-primary);
+        border-right: 3px solid #2980b9;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .question-box {
+        padding: 12px;
+        background-color: var(--bg-secondary);
+        margin: 10px 0;
+        cursor: pointer;
+        border-radius: 8px;
+        border: 2px solid #7f8c8d;
+        text-align: center;
+        transition: 0.3s ease-in-out;
+    }
+    .question-content {
+        display: none; /* Initially hidden */
+    }
+
+    .question-content.active {
+        display: block;
+    }
+
+    .submissions-panel {
+        width: 70%;
+        padding: 20px;
+        overflow-y: auto;
+        background: var(--bg-primary);
+    }
+
+    .submissions-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .submissions-list li {
+        background-color: var(--bg-secondary);
+        margin: 8px 0;
+        padding: 12px;
+        border-radius: 8px;
+        border: 2px solid #7f8c8d;
+    }
+
+    .failed-submission {
+        color: red;
+        font-weight: bold;
+    }
+
+    /* Panel Header Layout: Row with Equal Spacing */
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background:var(--bg-primary);
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid #bdc3c7;
+    margin: 15px 0;
+}
+
+/* Box for Question Lives, Lost Lives, and Add Life */
+.header-box {
+    text-align: center;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border-radius: 5px;
+    border: 2px solid #7f8c8d;
+    font-size: 1rem;
+    font-weight: bold;
+    min-width: 130px;
+}
+
+/* Vertical Divider Line */
+.divider {
+    width: 2px;
+    height: 40px;
+    background: #7f8c8d;
+}
+
+/* Add Life Button (Hidden if Lives Lost is 0) */
+.add-life-btn {
+    padding: 5px 12px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.add-life-btn:hover {
+    background: #2ecc71;
+}
+
+
+    
+</style>
+<div class="content">
+    <div class="contests-header">
+        <div class="contests-header-content">{{ contest.title }}</div> 
+        <div class="contest-type active">{{contest.status}}</div>
+    </div>
+<hr>
+
+
+
+
+<div class="content-pannels">
+<div class="questions-panel">
+    <h2>{{ participant.user.username }}</h2>
+    <p>Score :{{participant.score }}</h2>
+
+    <h3>Questions</h3>
+    {% for question in questions %}
+        <div class="question-box" onclick="showQuestion({{ question.id }})">
+            Question {{ forloop.counter }}: {{ question.title }}
+        </div>
+    {% endfor %}
+</div>
+
+<div class="submissions-panel">
+    {% for question in questions %}
+        <div class="question-content" id="question-{{ question.id }}">
+            <h3>Question {{ forloop.counter }}: {{ question.title }}</h3>
+
+            <div class="panel-header">
+                <!-- Question Lives -->
+                <div class="header-box">
+                    <span class="box-title">Question Lives</span>
+                    <span class="box-value">{{ question.lives }}</span>
+                </div>
+            
+                <div class="divider"></div> <!-- Vertical Line Separator -->
+            
+                <!-- Lost Lives -->
+                <div class="header-box">
+                    <span class="box-title">Lost Lives</span>
+                    <span class="box-value">{{ lives_lost|get_item:question.id }}</span>
+                </div>
+            
+                {% if lives_lost|get_item:question.id > 0 %}
+                <div class="divider"></div> <!-- Vertical Line Separator -->
+            
+                <!-- Add Life Button (Only if Lost Lives > 0) -->
+                <div class="header-box add-life">
+                    <span class="box-title">Add Lives</span>
+                    <form action="{% url 'compticode:add_life' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="participant_id" value="{{ participant.id }}">
+                        <input type="hidden" name="question_id" value="{{ question.id }}">
+                        <button type="submit" class="add-life-btn">+</button>
+                    </form>
+                </div>
+                
+                {% endif %}
+            </div>
+            
+            
+            <h5>Submissions:</h5>
+            <ul class="submissions-list">
+                {% for submission in question_submissions|get_item:question.id %}
+                    <li>
+                        <strong>Time:</strong> {{ submission.created_at }} <br>
+                        <strong>Score:</strong> {{ submission.score }} <br>
+                        <strong>Output:</strong> {{ submission.output }} 
+                        {% if submission.output != 1 %}
+                            <span class="failed-submission">(Failed)</span>
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li>No submissions yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+</div>
+</div>
+</div>
+
+<script>
+    
+    function showQuestion(questionId) {
+        // Hide all question content sections
+        document.querySelectorAll('.question-content').forEach(div => {
+            div.classList.remove('active');
+        });
+
+        // Show the selected question
+        document.getElementById(`question-${questionId}`).classList.add('active');
+
+        // Highlight the selected question
+        document.querySelectorAll('.question-box').forEach(div => {
+            div.classList.remove('active');
+        });
+
+        document.querySelector(`.question-box[onclick="showQuestion(${questionId})"]`).classList.add('active');
+    }
+
+    // Auto-select the first question on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        let firstQuestion = document.querySelector('.question-box');
+        if (firstQuestion) {
+            firstQuestion.click();
+        }
+    });
+</script>
+{% endblock %}
+

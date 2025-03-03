@@ -1,11 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N0t found</title>
-</head>
-<body>
-    40000004
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<title>404 Not Found - CodeHub</title>
+<link rel="stylesheet" href="{% static 'core/css/error.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="error-container">
+    <div class="error-bg">
+        {% for i in "x"|rjust:"20" %}
+        <div class="error-particle"></div>
+        {% endfor %}
+    </div>
+    <div class="error-content">
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">Page Not Found</h2>
+        <p class="error-message">The page you're looking for seems to have disappeared into the void. Maybe it's solving a coding challenge somewhere else?</p>
+        <a href="{% url 'core:home' %}" class="error-button">Return Home</a>
+    </div>
+</div>
+{% endblock %}

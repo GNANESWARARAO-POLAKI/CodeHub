@@ -1,21 +1,84 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block head %}
-<title>Home</title>
+<title>CodeHub - Competitive Programming Platform</title>
 {% endblock %}
+
 {% block nav %}
 <a href="{% url 'core:home'%}" class="nav-link active">Home</a>
 <a href="{% url 'core:contests'%}" class="nav-link">Contests</a>
-<a href="{% url 'core:home'%}" class="nav-link">About</a>
+<a href="{% url 'core:about'%}" class="nav-link">About</a>
 {% endblock %}
 
 {% block body %}
-    <h1>Welcome to Home Page CodeHub!</h1>
-    {% if request.user.is_authenticated %}
-        {{ request.user.username }}
-    {% endif %}
-{% endblock %}
-{% block script %}
-<script src="{% static 'core/js/script.js' %}"></script>
-{% endblock %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to CodeHub</h1>
+        <p class="hero-subtitle">Where Coding Excellence Meets Competition</p>
+        <div class="hero-buttons">
+            <a href="{% url 'core:contests' %}" class="hero-button primary">Join Contest</a>
+            <a href="#features" class="hero-button secondary">Learn More</a>
+        </div>
+    </div>
+</div>
 
+<section id="features" class="features-section">
+    <h2 class="section-title">Why Choose CodeHub?</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🏆</div>
+            <h2>Live Contests</h2>
+            <p>Participate in real-time coding competitions and challenge yourself</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h2>Skill Growth</h2>
+            <p>Improve your problem-solving abilities and coding techniques</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">👥</div>
+            <h2>Multiple Themes</h2>
+            <p>Compete in coding contests featuring diverse challenges across various themes. </p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🎮</div>
+            <h2>Gamified Challenges</h2>
+            <p>
+Level up your coding skills through interactive, theme-based contests! </p>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h2>1</h2>
+            <p> Current Contest Themes</p>
+        </div>
+        <div class="stat-card">
+            <h2>2</h2>
+            <p>Avalible Contests</p>
+        </div>
+        <div class="stat-card">
+            <h2>2</h2>
+            <p> Contest Themes in Development</p>
+        </div>
+        
+    </div>
+</section>
+
+<section class="cta-section">
+    <h2>Ready to Start Your Coding Journey?</h2>
+    <p>Join on CodeHub to get an gamified coding experience.</p>
+    {% if not request.user.is_authenticated %}
+    <div class="cta-buttons">
+        <a href="{% url 'core:register' %}" class="cta-button primary">Sign Up Now</a>
+        <a href="{% url 'core:login' %}" class="cta-button secondary">Login</a>
+    </div>
+    {% else %}
+    <div class="cta-buttons">
+        <a href="{% url 'core:contests' %}" class="cta-button primary">View Contests</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

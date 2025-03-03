@@ -1,0 +1,60 @@
+<div class="questions-panel">
+    <h3>Questions</h3>
+    {% for question in questions %}
+        <div class="question-box" onclick="showQuestion({{ question.id }})">
+            Question {{ forloop.counter }}: {{ question.title }}
+        </div>
+    {% endfor %}
+</div>
+
+<div class="submissions-panel">
+    {% for question in questions %}
+        <div class="question-content" id="question-{{ question.id }}">
+            <h3>Question {{ forloop.counter }}: {{ question.title }}</h3>
+            <p><strong>Lives Lost:</strong> <span class="failed-submission">{{ lives_lost|get_item:question.id }}</span></p>
+            
+            <h5>Submissions:</h5>
+            <ul class="submissions-list">
+                {% for submission in question_submissions|get_item:question.id %}
+                    <li>
+                        <strong>Time:</strong> {{ submission.created_at }} <br>
+                        <strong>Score:</strong> {{ submission.score }} <br>
+                        <strong>Output:</strong> {{ submission.output }} 
+                        {% if submission.output != 1 %}
+                            <span class="failed-submission">(Failed)</span>
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li>No submissions yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    function showQuestion(questionId) {
+        // Hide all question content sections
+        document.querySelectorAll('.question-content').forEach(div => {
+            div.classList.remove('active');
+        });
+
+        // Show the selected question
+        document.getElementById(`question-${questionId}`).classList.add('active');
+
+        // Highlight the selected question
+        document.querySelectorAll('.question-box').forEach(div => {
+            div.classList.remove('active');
+        });
+
+        document.querySelector(`.question-box[onclick="showQuestion(${questionId})"]`).classList.add('active');
+    }
+
+    // Auto-select the first question on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        let firstQuestion = document.querySelector('.question-box');
+        if (firstQuestion) {
+            firstQuestion.click();
+        }
+    });
+</script>

@@ -8,14 +8,14 @@
 {% block nav %}
 <a href="{% url 'core:home'%}" class="nav-link">Home</a>
 <a href="{% url 'core:contests'%}" class="nav-link active">Contests</a>
-<a href="{% url 'core:home'%}" class="nav-link">About</a>
+<a href="{% url 'core:about'%}" class="nav-link">About</a>
 {% endblock %}
 
     {% block body %}
  
     <div class="content">
         <div class="contests-header">
-            <div class="contests-header-content">Codehub coding  Contests</div>
+            <div class="contests-header-content">CodeHub Coding  Contests</div>
         </div>
         
         <div class="contests-type">
@@ -23,7 +23,10 @@
         </div>
         <div class="live-contests">
             {% for contest in ongoing_contests %}
-            <div class="contests-card" ><a  href="{% url 'codelife:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+            <div class="contests-card" >
+                {% if contest.contest_type == "codelife" %}  <a  href="{% url 'codelife:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                    {% elif contest.contest_type == "compticode" %} <a  href="{% url 'compticode:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                    {% endif %}    
                 <div class="contest-poster"><img src='{{contest.poster.url}}' alt="no img"></div>
                 <div class="contest-title">{{contest.title}}</div>
                 <div class="contest-text"><p>From :{{contest.start_date|date:"M-d-y h:iA"}}</p>
@@ -41,7 +44,10 @@
             </div>
             <div class="live-contests">
                 {% for contest in upcoming_contests %}
-                <div class="contests-card"><a  href="{% url 'codelife:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                <div class="contests-card">
+                    {% if contest.contest_type == "codelife" %}  <a  href="{% url 'codelife:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                        {% elif contest.contest_type == "compticode" %} <a  href="{% url 'compticode:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                        {% endif %}    
                     <div class="contest-poster"><img src='{{contest.poster.url}}' alt="no img"></div>
                     <div class="contest-title">{{contest.title}}</div>
                     <div class="contest-text"><p>From :{{contest.start_date|timesince}}</p>
@@ -62,7 +68,10 @@
 
             <div class="live-contests">
                 {% for contest in past_contests %}
-                <div class="contests-card"><a  href="{% url 'codelife:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                <div class="contests-card">
+                    {% if contest.contest_type == "codelife" %}  <a  href="{% url 'codelife:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                        {% elif contest.contest_type == "compticode" %} <a  href="{% url 'compticode:contest_details' contest.id %}" style="text-decoration: none;color: inherit;">
+                        {% endif %}    
                     <div class="contest-poster"><img src='{{contest.poster.url}}' alt="no img"></div>
                     <div class="contest-title">{{contest.title}}</div>
                     <div class="contest-text"><p> {{contest.start_date|timesince}} ago</p>

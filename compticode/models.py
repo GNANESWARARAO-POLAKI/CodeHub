@@ -5,14 +5,14 @@ from django.utils.timezone import now,localtime
 
 # Create your models here.
 
-
 class Questions(models.Model):
-    contest=models.ForeignKey(Contests,on_delete=models.CASCADE,related_name='questions')
+    contest=models.ForeignKey(Contests,on_delete=models.CASCADE,related_name='compticode_questions')
     title=models.CharField(max_length=100)
     description=models.TextField(blank=False)
     timelimit=models.PositiveIntegerField()
     score=models.PositiveIntegerField()
-    lives=models.PositiveIntegerField(default=5)
+    # lives=models.PositiveIntegerField(default=5)
+    
     def save(self,*args,**kwargs):
         self.title=self.title.capitalize()
         super().save(*args,**kwargs)
@@ -23,8 +23,8 @@ class Questions(models.Model):
             'title':self.title,
             'description':self.description,
             'score':self.score,
-            'lives':self.lives,
         }
+        
     # def is_solved(user):
     #     # if user.is_anonymous:
     #     #     return False
@@ -35,7 +35,7 @@ class Questions(models.Model):
 
 
 class Testcases(models.Model):
-    question=models.ForeignKey(Questions,on_delete=models.CASCADE,related_name='testcases')
+    question=models.ForeignKey(Questions,on_delete=models.CASCADE,related_name='compticode_testcases')
     input_data=models.TextField()
     expected_output=models.TextField()
     hidden=models.BooleanField(default=True)
@@ -50,11 +50,12 @@ class Testcases(models.Model):
 
 
 class Participant(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='participations')
-    contest = models.ForeignKey(Contests, on_delete=models.CASCADE, related_name='participants')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='compticode_participations')
+    contest = models.ForeignKey(Contests, on_delete=models.CASCADE, related_name='compticode_participants')
     score = models.FloatField(default=0)
     lives = models.PositiveIntegerField(default=5) 
     joined_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
     session_id = models.CharField(max_length=255, blank=True, null=True)
     last_activity = models.DateTimeField(auto_now=True)
     class Meta:
@@ -73,17 +74,17 @@ class Participant(models.Model):
             questions = Questions.objects.filter(contest=self.contest)
             for question in questions:
                 Tempcode.objects.create(question=question, participant=self)
-    def deduce_life(self):
-        if self.lives > 0:
-            # Deduct a life
-            self.lives -= 1
-            Participant.objects.filter(pk=self.pk).update(lives=self.lives)
-    def add_life(self):
-        if self.lives<=7:
-            self.lives+=1
-            Participant.objects.filter(pk=self.pk).update(lives=self.lives)
+    # def deduce_life(self):
+    #     if self.lives > 0:
+    #         # Deduct a life
+    #         self.lives -= 1
+    #         Participant.objects.filter(pk=self.pk).update(lives=self.lives)
+    # def add_life(self):
+    #     if self.lives<=7:
+    #         self.lives+=1
+    #         Participant.objects.filter(pk=self.pk).update(lives=self.lives)
     def __str__(self):
-        return f"{self.user.username} participating in {self.contest.title}"
+        return f"{self.user.username} participating in {self.contest.title} -- ComptiCode theme"
 
 
 # output = ["Accepted (AC)", "Wrong Answer (WA)", "Runtime Error (RE)",
@@ -91,8 +92,8 @@ class Participant(models.Model):
 # "Partial Correct (PC)","Output Limit Exceeded (OLE)","Internal Error (IE)"]
  
 class Submission(models.Model):
-    participant = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='submissions')
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='submissions')
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='compticode_submissions')
+    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='compticode_submissions')
     language=models.PositiveIntegerField()
     code=models.TextField()
     output=models.PositiveIntegerField()
@@ -125,8 +126,8 @@ int main() {
 }
 
 class Tempcode(models.Model):
-    participant=models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='temporary_codes')
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='temporary_codes')
+    participant=models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='compticode_temporary_codes')
+    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='compticode_temporary_codes')
     c=models.TextField(default=default_codes['c'])
     python=models.TextField(default=default_codes['python'])
     cpp=models.TextField(default=default_codes['cpp'])

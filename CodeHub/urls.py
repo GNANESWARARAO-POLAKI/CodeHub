@@ -33,7 +33,8 @@ handler500='core.views.custom_500'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('core.urls')),
-    path('codelife/',include('codelife.urls'))
+    path('codelife/',include('codelife.urls',namespace='codelife')),
+    path('compticode/',include('compticode.urls',namespace='compticode'))
 ]
 
 if not settings.DEBUG:
