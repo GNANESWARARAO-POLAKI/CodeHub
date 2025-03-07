@@ -240,7 +240,7 @@ function ContestEnded(){
 
 // Initialize everything when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    updateTimer();
+    // updateTimer();
     initializeTabs();
     loadQuestion(-1);
     initializeSubmitButton();

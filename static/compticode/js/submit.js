@@ -11,6 +11,7 @@ function initializeSubmitButton() {
         const cpp_code=document.getElementById('cpp-code').value;
         const java_code=document.getElementById('java-code').value;
         const data={
+            'contest_id':document.getElementById('contest').dataset.contestId,
             'code':programCode,
             'language':language,
             'temp_code_data':{
@@ -108,6 +109,7 @@ function initializeRunButton() {
         const cpp_code=document.getElementById('cpp-code').value;
         const java_code=document.getElementById('java-code').value;
         const data={
+            'contest_id':document.getElementById('contest').dataset.contestId,
             'code':programCode,
             'language':language,
             'temp_code_data':{

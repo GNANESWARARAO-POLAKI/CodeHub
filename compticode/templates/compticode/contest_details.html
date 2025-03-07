@@ -192,7 +192,7 @@
             <ul>
                 {% for question in questions %}
                     <li>{{ question.title }} ---
-                        <a href="{% url 'compticode:edit_question' question.id %}">Edit question</a>
+                        <a href="{% url 'compticode:edit_question' contest.id question.id %}">Edit question</a>
                     </li>
                 {% empty %}
                     <li>No questions available.</li>

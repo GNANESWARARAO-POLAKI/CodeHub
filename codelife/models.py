@@ -5,48 +5,48 @@ from django.utils.timezone import now,localtime
 
 # Create your models here.
 
-class Questions(models.Model):
-    contest=models.ForeignKey(Contests,on_delete=models.CASCADE,related_name='codelife_questions')
-    title=models.CharField(max_length=100)
-    description=models.TextField(blank=False)
-    timelimit=models.PositiveIntegerField()
-    score=models.PositiveIntegerField()
-    lives=models.PositiveIntegerField(default=5)
+# class Questions(models.Model):
+#     contest=models.ForeignKey(Contests,on_delete=models.CASCADE,related_name='codelife_questions')
+#     title=models.CharField(max_length=100)
+#     description=models.TextField(blank=False)
+#     timelimit=models.PositiveIntegerField()
+#     score=models.PositiveIntegerField()
+#     lives=models.PositiveIntegerField(default=5)
     
-    def save(self,*args,**kwargs):
-        self.title=self.title.capitalize()
-        super().save(*args,**kwargs)
+#     def save(self,*args,**kwargs):
+#         self.title=self.title.capitalize()
+#         super().save(*args,**kwargs)
 
-    def serialize(self):
-        return {
-            'id':self.id,
-            'title':self.title,
-            'description':self.description,
-            'score':self.score,
-            'lives':self.lives,
-        }
-    # def is_solved(user):
-    #     # if user.is_anonymous:
-    #     #     return False
-    #     return Submission.objects.filter(output=1, participant__user=user).exists()
+#     def serialize(self):
+#         return {
+#             'id':self.id,
+#             'title':self.title,
+#             'description':self.description,
+#             'score':self.score,
+#             'lives':self.lives,
+#         }
+#     # def is_solved(user):
+#     #     # if user.is_anonymous:
+#     #     #     return False
+#     #     return Submission.objects.filter(output=1, participant__user=user).exists()
   
-    def __str__(self):
-        return f"Question :{self.title} in {self.contest.title}"
+#     def __str__(self):
+#         return f"Question :{self.title} in {self.contest.title}"
 
 
-class Testcases(models.Model):
-    question=models.ForeignKey(Questions,on_delete=models.CASCADE,related_name='testcases')
-    input_data=models.TextField()
-    expected_output=models.TextField()
-    hidden=models.BooleanField(default=True)
-    def __str__(self):
-        return f"TestCase for {self.question.title} (Hidden: {self.hidden})"
-    def serialize(self):
-        return {
-            'input_data':self.input_data,
-            'expected_output':self.expected_output,
-            'hidden':self.hidden,
-        }
+# class Testcases(models.Model):
+#     question=models.ForeignKey(Question,on_delete=models.CASCADE,related_name='testcases')
+#     input_data=models.TextField()
+#     expected_output=models.TextField()
+#     hidden=models.BooleanField(default=True)
+#     def __str__(self):
+#         return f"TestCase for {self.question.title} (Hidden: {self.hidden})"
+#     def serialize(self):
+#         return {
+#             'input_data':self.input_data,
+#             'expected_output':self.expected_output,
+#             'hidden':self.hidden,
+#         }
 
 
 class Participant(models.Model):
@@ -71,7 +71,7 @@ class Participant(models.Model):
             super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
-            questions = Questions.objects.filter(contest=self.contest)
+            questions = Question.objects.filter(contest=self.contest)
             for question in questions:
                 Tempcode.objects.create(question=question, participant=self)
     def deduce_life(self):
@@ -93,7 +93,7 @@ class Participant(models.Model):
  
 class Submission(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='submissions')
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='submissions')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='submissions')
     language=models.PositiveIntegerField()
     code=models.TextField()
     output=models.PositiveIntegerField()
@@ -127,7 +127,7 @@ int main() {
 
 class Tempcode(models.Model):
     participant=models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='temporary_codes')
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='temporary_codes')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='temporary_codes')
     c=models.TextField(default=default_codes['c'])
     python=models.TextField(default=default_codes['python'])
     cpp=models.TextField(default=default_codes['cpp'])

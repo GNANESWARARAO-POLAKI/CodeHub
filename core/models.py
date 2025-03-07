@@ -51,7 +51,7 @@ class Contests(models.Model):
     poster = models.ImageField(null=True, upload_to='contest_posters/')
     winners = models.ManyToManyField(User, related_name='contest_winners', blank=True)
     runner = models.CharField(max_length=40, null=True, blank=True)
-     
+    
     objects = ContestManager()  # Custom manager
     questions=models.ManyToManyField('Question',related_name='contest_questions',blank=True)
     def clean(self):
@@ -108,3 +108,17 @@ class Question(models.Model):
   
     def __str__(self):
         return f"Question :{self.title} "
+
+class Testcase(models.Model):
+    question=models.ForeignKey(Question,on_delete=models.CASCADE,related_name='compticode_testcases')
+    input_data=models.TextField()
+    expected_output=models.TextField()
+    hidden=models.BooleanField(default=True)
+    def __str__(self):
+        return f"TestCase for {self.question.title} (Hidden: {self.hidden})"
+    def serialize(self):
+        return {
+            'input_data':self.input_data,
+            'expected_output':self.expected_output,
+            'hidden':self.hidden,
+        }

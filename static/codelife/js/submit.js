@@ -172,7 +172,9 @@ function initializeRunButton() {
         const pyhton_code=document.getElementById('python-code').value;
         const cpp_code=document.getElementById('cpp-code').value;
         const java_code=document.getElementById('java-code').value;
+        const contest_id=document.getElementById('contest').dataset.contestId;
         const data={
+            'contest_id':contest_id,
             'code':programCode,
             'language':language,
             'temp_code_data':{
@@ -183,7 +185,7 @@ function initializeRunButton() {
                     'java':java_code
             }
         }
-        fetch(`/codelife/run_code/${question_number}`, {
+        fetch(`/compticode/run_code/${question_number}`, {
             method: 'POST', 
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded', 

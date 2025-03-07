@@ -18,7 +18,7 @@ urlpatterns=[
      path('create_contest',views.create_contest,name='create_contest'),
      path('logout/',views.user_logout,name='logout'),
      path('edit_contest/<int:contest_id>',views.edit_contest,name='edit_contest'),
-     
+     path('send_email',views.send_email_view,name='send_email'),
 ]
 
 if settings.DEBUG:

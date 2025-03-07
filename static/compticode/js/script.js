@@ -85,6 +85,7 @@ function loadQuestion(questionNumber) {
         const java_code=document.getElementById('java-code').value;
         const question_number = document.getElementById('question_id').dataset.questionId;
         const data={
+            'contest_id':document.getElementById('contest').dataset.contestId,
             'question_id':question_number,
             'c':c_code,
             'cpp':cpp_code,

@@ -171,3 +171,20 @@ LOGIN_URL = '/login/'
 
 
 # HANDLER404 = 'core.views.custom_404'
+
+
+
+# time pass
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True  # or EMAIL_USE_SSL = True if using SSL
+
+EMAIL_HOST_USER = 'acmcodespacegmrit@gmail.com'
+EMAIL_HOST_PASSWORD = 'rzyl adfz lboi drcs'
+EMAIL_FROM = 'acmcodespacegmrit@gmail.com'
+
+# EMAIL_HOST_USER = 'chandu0polaki@gmail.com'
+# EMAIL_HOST_PASSWORD = 'frtd mgru vhoh qpgr'
+# EMAIL_FROM = 'chandu0polaki@gmail.com'

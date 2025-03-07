@@ -7,6 +7,35 @@ from django.utils.timezone import now,localtime
 import base64
 from django.core.files.base import ContentFile
 
+
+from django.core.mail import EmailMultiAlternatives
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.conf import settings
+
+def send_email_view(request):
+    subject = "ACM-W position annoucement"
+    recipient = "22341A4545@gmrit.edu.in"
+
+    # Render the HTML template
+    html_content = render_to_string("temp_mail.html", {})
+    try:
+        # Create an email message with both plain text and HTML content
+        email = EmailMultiAlternatives(
+            subject,
+            "Please enable HTML to view this email.",  # Plain text fallback
+            settings.EMAIL_HOST_USER,
+            [recipient]
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
+        return JsonResponse({"status": "success", "message": "Email sent successfully!"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
+
+
 # Create your views here.
 
 def home(request):

@@ -49,7 +49,7 @@ def contest_details(request,contest_id):
         is_participant=Participant.objects.filter(user=request.user,contest=contest).exists()
     # print(localtime(now()).strftime('%Y-%m-%d %H:%M:%S'))
     if request.user.is_staff:
-        questions=Questions.objects.filter(contest=contest)
+        questions=contest.questions.all()
         return render(request,'contest_details.html',{'questions':questions,'contest':contest,'registration_count':registration_count,'is_participant':is_participant})
     return render(request,'contest_details.html',{'contest':contest,'is_participant':is_participant,'registration_count':registration_count})
 
@@ -130,7 +130,7 @@ def verify_passcode(request):
 #             })
 #     else:
 #         form = AddQuestionsForm()
-#         formset = TestcaseFormSet(queryset=Testcases.objects.none())  # No testcases initially
+#         formset = TestcaseFormSet(queryset=Testcase.objects.none())  # No testcases initially
 
 #     return render(request, 'add_question.html', {
 #         'form': form,
@@ -198,7 +198,7 @@ def verify_passcode(request):
 #     })
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Contests, Questions, Testcases
+from .models import Contests
 
 @login_required
 def add_or_edit_question(request, contest_id=None, question_id=None):
@@ -226,13 +226,13 @@ def add_or_edit_question(request, contest_id=None, question_id=None):
             question.lives=lives
             question.save()
         else:
-            question = Questions.objects.create(
+            question = Question.objects.create(
                 title=title,
                 description=description,
                 score=score,
                 timelimit=timelimit,
                 lives=lives,
-                contest=contest
+                # contest=contest
             )
 
         # Handling test cases
@@ -291,7 +291,7 @@ def leaderboard(request, contest_id):
 def questions(request, contest_id):
     user = get_object_or_404(User, id=request.user.id)
     contest = get_object_or_404(Contests, id=contest_id)
-    questions = Questions.objects.filter(contest=contest).order_by('id')
+    questions = contest.questions.all().order_by('id')
     participant=get_object_or_404(Participant,user=user,contest=contest)
     
     if not questions.exists():
@@ -300,7 +300,7 @@ def questions(request, contest_id):
     question_id = request.GET.get('question_id',first_question)
     if not question_id:
         return JsonResponse({'error': 'question_id is required'}, status=400)
-    current_question = get_object_or_404(Questions, id=question_id, contest=contest)
+    current_question = get_object_or_404(Question, id=question_id)
     status = is_solved(current_question, user)
     lost_submissions=0
     testcase_data=False
@@ -308,7 +308,7 @@ def questions(request, contest_id):
     lost_submissions = submissions.count() - submissions.filter(output=1).count() if submissions.exists() else 0
     testcase_data = submissions.latest('created_at').json_data if submissions.exists() else False
         # print(testcase_data)
-    # sample_testcase=Testcases.objects.filter(question=current_question).first()
+    # sample_testcase=Testcase.objects.filter(question=current_question).first()
     current_score=0
     solved_status=[]
     for q in questions:
@@ -355,7 +355,7 @@ def submit(request,  question_id):
     code = passed_data['code']
     language =passed_data['language']
     saving_data=save_temp_code(user,passed_data['temp_code_data'])
-    testcases=Testcases.objects.filter(question=question)
+    testcases=Testcase.objects.filter(question=question)
     testcases_count=testcases.count()
     jsondata={
         'testcases':[ testcase.serialize() for testcase in testcases],
@@ -467,9 +467,7 @@ def manage_participant(request, contest_id, participant_name):
     participant = get_object_or_404(Participant, user__username=participant_name, contest=contest)
 
     # Fetch all questions from the contest AND questions the participant has submitted for
-    questions = Questions.objects.filter(
-        Q(contest=contest) | Q(submissions__participant=participant)
-    ).distinct()
+    questions = contest.questions.all()
 
     # Get all submissions of the participant
     submissions = Submission.objects.filter(participant=participant).select_related('question')
@@ -553,10 +551,11 @@ def add_life(request):
 
 
 @csrf_exempt
-def run_code(request, question_id):
+def run_code(request,contest_id,question_id):
     user = get_object_or_404(User, id=request.user.id)
-    question = get_object_or_404(Questions, id=question_id)
-    participant = get_object_or_404(Participant, user=user, contest=question.contest)
+    contest=get_object_or_404(Contests,id=contest_id)
+    question = get_object_or_404(Question, id=question_id)
+    participant = get_object_or_404(Participant, user=user, contest=contest)
     current_score = participant.score
     
     if request.method != 'POST':
@@ -570,7 +569,7 @@ def run_code(request, question_id):
     code = passed_data['code']
     language = passed_data['language']
     saving_data = save_temp_code(user, passed_data['temp_code_data'])
-    testcases = Testcases.objects.filter(question=question)
+    testcases = Testcase.objects.filter(question=question)
     testcases_count = testcases.count()
     
     jsondata = {
@@ -642,7 +641,7 @@ def run_code(request, question_id):
     code = passed_data['code']
     language = passed_data['language']
     saving_data = save_temp_code(user, passed_data['temp_code_data'])
-    testcases = Testcases.objects.filter(question=question)
+    testcases = Testcase.objects.filter(question=question)
     testcases_count = testcases.count()
     
     jsondata = {

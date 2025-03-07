@@ -49,7 +49,7 @@ def contest_details(request,contest_id):
         is_participant=Participant.objects.filter(user=request.user,contest=contest).exists()
     # print(localtime(now()).strftime('%Y-%m-%d %H:%M:%S'))
     if request.user.is_staff:
-        questions=Questions.objects.filter(contest=contest)
+        questions=contest.questions.all()
         return render(request,'compticode/contest_details.html',{'questions':questions,'contest':contest,'registration_count':registration_count,'is_participant':is_participant})
     return render(request,'compticode/contest_details.html',{'contest':contest,'is_participant':is_participant,'registration_count':registration_count})
 
@@ -199,15 +199,14 @@ def verify_passcode(request):
 #     })
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Contests, Questions, Testcases
+from .models import Contests, Question
 
 @login_required
 def add_or_edit_question(request, contest_id=None, question_id=None):
-    if question_id:
-        question = get_object_or_404(Questions, id=question_id)
-        contest = question.contest
+    if question_id :
+        question = get_object_or_404(Question, id=question_id)
+        contest = get_object_or_404(Contests, id=contest_id)
         is_edit = True
-
     else:
         contest = get_object_or_404(Contests, id=contest_id)
         question = None
@@ -225,7 +224,7 @@ def add_or_edit_question(request, contest_id=None, question_id=None):
             question.timelimit = timelimit
             question.save()
         else:
-            question = Questions.objects.create(
+            question = Question.objects.create(
                 title=title,
                 description=description,
                 score=score,
@@ -243,14 +242,14 @@ def add_or_edit_question(request, contest_id=None, question_id=None):
             hidden = request.POST.get(f'hidden_{i}') == 'on'  # Convert string to boolean
 
             if input_data and output_data:
-                testcase, created = Testcases.objects.get_or_create(question=question, input_data=input_data)
+                testcase, created = Testcase.objects.get_or_create(question=question, input_data=input_data)
                 testcase.expected_output = output_data
                 testcase.hidden = hidden
                 testcase.save()
 
         return redirect('compticode:contest_details', contest_id=contest.id)
 
-    testcases = Testcases.objects.filter(question=question) if is_edit else []
+    testcases = Testcase.objects.filter(question=question) if is_edit else []
     return render(request, 'add_or_edit_question.html', {'contest': contest, 'question': question, 'testcases': testcases, 'is_edit': is_edit})
 
 
@@ -290,7 +289,7 @@ def leaderboard(request, contest_id):
 def questions(request, contest_id):
     user = get_object_or_404(User, id=request.user.id)
     contest = get_object_or_404(Contests, id=contest_id)
-    questions = Questions.objects.filter(contest=contest).order_by('id')
+    questions = contest.questions.all().order_by('id')
     participant=get_object_or_404(Participant,user=user,contest=contest)
     
     if not questions.exists():
@@ -299,7 +298,7 @@ def questions(request, contest_id):
     question_id = request.GET.get('question_id',first_question)
     if not question_id:
         return JsonResponse({'error': 'question_id is required'}, status=400)
-    current_question = get_object_or_404(Questions, id=question_id, contest=contest)
+    current_question = get_object_or_404(Question, id=question_id)
     status = is_solved(current_question, user)
     lost_submissions=0
     testcase_data=False
@@ -343,18 +342,20 @@ def questions(request, contest_id):
 @csrf_exempt
 def submit(request,  question_id):
     user = get_object_or_404(User, id=request.user.id)
-    question = get_object_or_404(Questions, id=question_id)
-    participant=get_object_or_404(Participant,user=user,contest=question.contest)
-    current_score=participant.score
+    question = get_object_or_404(Question, id=question_id)
+    
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     passed_data=json.loads(request.body)
-    if question.contest.end_date<localtime(now()):
+    contest=get_object_or_404(Contests,id=passed_data['contest_id'])
+    if contest.end_date<localtime(now()):
         return JsonResponse({'error': 'Contest has ended'}, status=400)
     code = passed_data['code']
+    participant=get_object_or_404(Participant,user=user,contest=contest)
+    current_score=participant.score
     language =passed_data['language']
-    saving_data=save_temp_code(user,passed_data['temp_code_data'])
-    testcases=Testcases.objects.filter(question=question)
+    saving_data=save_temp_code(user,passed_data['temp_code_data']|{'contest_id':contest.id})
+    testcases=Testcase.objects.filter(question=question)
     testcases_count=testcases.count()
     jsondata={
         'testcases':[ testcase.serialize() for testcase in testcases],
@@ -424,8 +425,8 @@ def save_temporary_code(request):
 def save_temp_code(user,data=None):
     if data:
         question_id=max(1,int(data['question_id']))
-        question=get_object_or_404(Questions,id=question_id)
-        participant=get_object_or_404(Participant,user=user,contest=question.contest)
+        question=get_object_or_404(Question,id=question_id)
+        participant=get_object_or_404(Participant,user=user,contest=data['contest_id'])
         tempcode=get_object_or_404(Tempcode,question=question,participant=participant)
         tempcode.c=data['c'] 
         tempcode.python=data['python']
@@ -466,9 +467,8 @@ def manage_participant(request, contest_id, participant_name):
     participant = get_object_or_404(Participant, user__username=participant_name, contest=contest)
 
     # Fetch all questions from the contest AND questions the participant has submitted for
-    questions = Questions.objects.filter(
-        Q(contest=contest) | Q(submissions__participant=participant)
-    ).distinct()
+    questions = contest.questions.all()
+
 
     # Get all submissions of the participant
     submissions = Submission.objects.filter(participant=participant).select_related('question')
@@ -477,7 +477,7 @@ def manage_participant(request, contest_id, participant_name):
     question_submissions = {question.id: [] for question in questions}
     lives_lost = {question.id: 0 for question in questions}
 
-    # Process submissions
+    # Process submissions 
     for submission in submissions:
         question_id = submission.question.id
         if question_id not in question_submissions:
@@ -554,22 +554,22 @@ def contest_results(request,contest_id):
 @csrf_exempt
 def run_code(request, question_id):
     user = get_object_or_404(User, id=request.user.id)
-    question = get_object_or_404(Questions, id=question_id)
-    participant = get_object_or_404(Participant, user=user, contest=question.contest)
-    current_score = participant.score
+    question = get_object_or_404(Question, id=question_id)
+   
     
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
     passed_data = json.loads(request.body)
-    
-    if question.contest.end_date < localtime(now()):
+    contest=get_object_or_404(Contests,id=passed_data['contest_id'])
+    if contest.end_date < localtime(now()):
         return JsonResponse({'error': 'Contest has ended'}, status=400)
-    
+    participant = get_object_or_404(Participant, user=user, contest=contest)
+    current_score = participant.score
     code = passed_data['code']
     language = passed_data['language']
-    saving_data = save_temp_code(user, passed_data['temp_code_data'])
-    testcases = Testcases.objects.filter(question=question)
+    saving_data = save_temp_code(user, passed_data['temp_code_data']|{'contest_id':contest.id})
+    testcases = Testcase.objects.filter(question=question)
     testcases_count = testcases.count()
     
     jsondata = {
@@ -602,78 +602,6 @@ def run_code(request, question_id):
         
         score = 0  # No scoring in run_code
         
-        Submission.objects.create(
-            question=question,
-            code=code,
-            language=lang.index(language),
-            output=errors.index(status) + 1,
-            score=score,
-            participant=participant,
-            json_data=data
-        )
-        
-        # Return response without hidden test cases
-        return JsonResponse({'sample_testcase': sample, 'score': score, 'success': success, 'current_score': current_score})
-    
-    except requests.exceptions.HTTPError as errh:
-        return JsonResponse({'error': f"HTTP error occurred: {errh}"}, status=505)
-    except requests.exceptions.ConnectionError as errc:
-        return JsonResponse({'error': f"Error connecting: {errc}"}, status=505)
-    except requests.exceptions.Timeout as errt:
-        return JsonResponse({'error': f"Timeout error: {errt}"}, status=505)
-    except requests.exceptions.RequestException as err:
-        return JsonResponse({'error': f"An error occurred: {err}"}, status=505)
-@csrf_exempt
-def run_code(request, question_id):
-    user = get_object_or_404(User, id=request.user.id)
-    question = get_object_or_404(Questions, id=question_id)
-    participant = get_object_or_404(Participant, user=user, contest=question.contest)
-    current_score = participant.score
-    
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-    passed_data = json.loads(request.body)
-    
-    if question.contest.end_date < localtime(now()):
-        return JsonResponse({'error': 'Contest has ended'}, status=400)
-    
-    code = passed_data['code']
-    language = passed_data['language']
-    saving_data = save_temp_code(user, passed_data['temp_code_data'])
-    testcases = Testcases.objects.filter(question=question)
-    testcases_count = testcases.count()
-    
-    jsondata = {
-        'testcases': [testcase.serialize() for testcase in testcases],
-        'testcases_count': testcases_count,
-        'code': code,
-        'language': language,
-        'timelimit': question.timelimit,
-    }
-    
-    try:
-        response = requests.post(
-            url,
-            json=jsondata
-        )
-        data = response.json()
-        
-        lang = ['', 'python', 'c', 'c++', 'java']
-        errors = ['', 'runtime_error', 'compilation_error', 'wrong_answer', 'time_limit_exceeded']
-        
-        sample = data['sample_testcase']
-        success = True
-        status = ''
-        score = 0
-        
-        for testcase_result in sample:
-            if not testcase_result['success']:
-                success = False
-                status = testcase_result['error']
-        
-        # score = 0  # No scoring in run_code
-        
         # Submission.objects.create(
         #     question=question,
         #     code=code,
@@ -695,3 +623,77 @@ def run_code(request, question_id):
         return JsonResponse({'error': f"Timeout error: {errt}"}, status=505)
     except requests.exceptions.RequestException as err:
         return JsonResponse({'error': f"An error occurred: {err}"}, status=505)
+
+
+# @csrf_exempt
+# def run_code(request, question_id):
+#     user = get_object_or_404(User, id=request.user.id)
+#     question = get_object_or_404(Questions, id=question_id)
+#     participant = get_object_or_404(Participant, user=user, contest=question.contest)
+#     current_score = participant.score
+    
+#     if request.method != 'POST':
+#         return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+#     passed_data = json.loads(request.body)
+    
+#     if question.contest.end_date < localtime(now()):
+#         return JsonResponse({'error': 'Contest has ended'}, status=400)
+    
+#     code = passed_data['code']
+#     language = passed_data['language']
+#     saving_data = save_temp_code(user, passed_data['temp_code_data'])
+#     testcases = Testcases.objects.filter(question=question)
+#     testcases_count = testcases.count()
+    
+#     jsondata = {
+#         'testcases': [testcase.serialize() for testcase in testcases],
+#         'testcases_count': testcases_count,
+#         'code': code,
+#         'language': language,
+#         'timelimit': question.timelimit,
+#     }
+    
+#     try:
+#         response = requests.post(
+#             url,
+#             json=jsondata
+#         )
+#         data = response.json()
+        
+#         lang = ['', 'python', 'c', 'c++', 'java']
+#         errors = ['', 'runtime_error', 'compilation_error', 'wrong_answer', 'time_limit_exceeded']
+        
+#         sample = data['sample_testcase']
+#         success = True
+#         status = ''
+#         score = 0
+        
+#         for testcase_result in sample:
+#             if not testcase_result['success']:
+#                 success = False
+#                 status = testcase_result['error']
+        
+#         # score = 0  # No scoring in run_code
+        
+#         # Submission.objects.create(
+#         #     question=question,
+#         #     code=code,
+#         #     language=lang.index(language),
+#         #     output=errors.index(status) + 1,
+#         #     score=score,
+#         #     participant=participant,
+#         #     json_data=data
+#         # )
+        
+#         # Return response without hidden test cases
+#         return JsonResponse({'sample_testcase': sample, 'score': score, 'success': success, 'current_score': current_score})
+    
+#     except requests.exceptions.HTTPError as errh:
+#         return JsonResponse({'error': f"HTTP error occurred: {errh}"}, status=505)
+#     except requests.exceptions.ConnectionError as errc:
+#         return JsonResponse({'error': f"Error connecting: {errc}"}, status=505)
+#     except requests.exceptions.Timeout as errt:
+#         return JsonResponse({'error': f"Timeout error: {errt}"}, status=505)
+#     except requests.exceptions.RequestException as err:
+#         return JsonResponse({'error': f"An error occurred: {err}"}, status=505)
